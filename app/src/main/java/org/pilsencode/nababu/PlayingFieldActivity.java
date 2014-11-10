@@ -1,126 +1,101 @@
 package org.pilsencode.nababu;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.os.Build;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.DisplayMetrics;
-import android.view.Display;
-import android.view.MotionEvent;
-import android.view.View;
-import android.graphics.Bitmap;
-import android.graphics.Paint;
-import android.graphics.Color;
-import android.view.WindowManager;
-import android.widget.LinearLayout;
-import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
-import android.view.Menu;
+import android.util.Log;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class PlayingFieldActivity extends Activity {
-    /**
-     * Whether or not the system UI should be auto-hidden after
-     * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
-     */
-    private static final boolean AUTO_HIDE = true;
+public class PlayingFieldActivity extends Activity implements SensorEventListener {
 
-    /**
-     * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
-     * user interaction before hiding the system UI.
-     */
-    private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
-
-    /**
-     * If set, will toggle the system UI visibility upon interaction. Otherwise,
-     * will show the system UI visibility upon interaction.
-     */
-    private static final boolean TOGGLE_ON_CLICK = true;
-
+    private PlayingFieldView mView;
+    private SensorManager mSensorManager;
+    private Sensor mSensorAcc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mView = new PlayingFieldView(this);
+        setContentView(mView);
 
-        setContentView(R.layout.activity_playing_field);
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensorAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-//        final View controlsView = findViewById(R.id.fullscreen_content_controls);
-//        final View contentView = findViewById(R.id.fullscreen_content);
+//        //setContentView(R.layout.activity_playing_field);
 //
-//        // Upon interacting with UI controls, delay any scheduled hide()
-//        // operations to prevent the jarring behavior of controls going away
-//        // while interacting with the UI.
-//        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-
-        Paint paint = new Paint();
-        paint.setColor(Color.parseColor("#FFFFFF"));
-        Bitmap bg = Bitmap.createBitmap(480, 800, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bg);
-
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-        wm.getDefaultDisplay().getMetrics(displayMetrics);
-        int x = displayMetrics.widthPixels;
-        int y = displayMetrics.heightPixels;
-        int radius = 100;
-
-        canvas.drawCircle(x / 2, y / 2, radius, paint);
-        LinearLayout ll = (LinearLayout) findViewById(R.id.rect);
-        ll.setBackgroundDrawable(new BitmapDrawable(bg));
+////        final View controlsView = findViewById(R.id.fullscreen_content_controls);
+////        final View contentView = findViewById(R.id.fullscreen_content);
+////
+////        // Upon interacting with UI controls, delay any scheduled hide()
+////        // operations to prevent the jarring behavior of controls going away
+////        // while interacting with the UI.
+////        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+//
+//        DisplayMetrics displayMetrics = new DisplayMetrics();
+//        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+//        wm.getDefaultDisplay().getMetrics(displayMetrics);
+//        int x = displayMetrics.widthPixels;
+//        int y = displayMetrics.heightPixels;
+//
+//        Bitmap bg = Bitmap.createBitmap(480, 800, Bitmap.Config.ARGB_8888); //??
+//        Canvas canvas = new Canvas(bg);
+//        canvas.drawRGB(255, 255, 255);
+//
+//        Paint paint = new Paint();
+//        paint.setColor(Color.parseColor("#00FFFF"));
+//        int radius = 20;
+//
+//        canvas.drawCircle(x / 2, y / 2, radius, paint);
+//        LinearLayout ll = (LinearLayout) findViewById(R.id.rect);
+//        ll.setBackgroundDrawable(new BitmapDrawable(bg)); //??
     }
 
-//    @Override
-//    protected void onPostCreate(Bundle savedInstanceState) {
-//        super.onPostCreate(savedInstanceState);
-//
-//        // Trigger the initial hide() shortly after the activity has been
-//        // created, to briefly hint to the user that UI controls
-//        // are available.
-//        delayedHide(100);
-//    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, mSensorAcc, SensorManager.SENSOR_DELAY_NORMAL);
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // unregister the sensor to save battery
+        mSensorManager.unregisterListener(this);
+    }
 
-//    /**
-//     * Touch listener to use for in-layout UI controls to delay hiding the
-//     * system UI. This is to prevent the jarring behavior of controls going away
-//     * while interacting with activity UI.
-//     */
-//    View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
-//        @Override
-//        public boolean onTouch(View view, MotionEvent motionEvent) {
-//            if (AUTO_HIDE) {
-//                delayedHide(AUTO_HIDE_DELAY_MILLIS);
-//            }
-//            return false;
-//        }
-//    };
-//
-//    Handler mHideHandler = new Handler();
-//    Runnable mHideRunnable = new Runnable() {
-//        @Override
-//        public void run() {
-//            //mSystemUiHider.hide();
-//        }
-//    };
-//
-//    /**
-//     * Schedules a call to hide() in [delay] milliseconds, canceling any
-//     * previously scheduled calls.
-//     */
-//    private void delayedHide(int delayMillis) {
-//        mHideHandler.removeCallbacks(mHideRunnable);
-//        mHideHandler.postDelayed(mHideRunnable, delayMillis);
-//    }
+    @Override
+    public void onSensorChanged(SensorEvent e) {
+        float x = e.values[0];
+        float y = e.values[1];
+        float z = e.values[2];
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.activity_main, menu);
-//        return true;
-//    }
+        // http://www.anddev.org/code-snippets-for-android-f33/convert-android-accelerometer-values-and-get-tilt-from-accel-t6595.html
+        // http://www.hobbytronics.co.uk/accelerometer-info
+
+        double accX = -x/SensorManager.GRAVITY_EARTH;
+        double accY = -y/SensorManager.GRAVITY_EARTH;
+        double accZ = z/SensorManager.GRAVITY_EARTH;
+        double totAcc = Math.sqrt((accX*accX)+(accY*accY)+(accZ*accZ));
+        double tiltX = Math.asin(accX/totAcc);
+        double tiltY = Math.asin(accY/totAcc);
+        double tiltZ = Math.asin(accZ/totAcc);
+        Log.d("nababu", "values: tiltX: " + tiltX + ", tiltY: " + tiltY + ", tiltZ: " + tiltZ);
+
+        if (tiltX > 1.0f) {
+            mView.move(+20, 0);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // currently not used
+    }
+
 }
