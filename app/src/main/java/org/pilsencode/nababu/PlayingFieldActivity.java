@@ -2,6 +2,7 @@ package org.pilsencode.nababu;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -24,6 +25,8 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         super.onCreate(savedInstanceState);
         mView = new PlayingFieldView(this);
         setContentView(mView);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -88,8 +91,22 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         double tiltZ = Math.asin(accZ/totAcc);
         Log.d("nababu", "values: tiltX: " + tiltX + ", tiltY: " + tiltY + ", tiltZ: " + tiltZ);
 
-        if (tiltX > 1.0f) {
-            mView.move(+20, 0);
+        int incX = 0;
+        int incY = 0;
+        if (tiltX < -0.5f) {
+            incX = -10;
+        }
+        if (tiltX > 0.5f) {
+            incX = 10;
+        }
+        if (tiltY < -0.5f) {
+            incY = 10;
+        }
+        if (tiltY > 0.5f) {
+            incY = -10;
+        }
+        if (0 != incX || 0 != incY) {
+            mView.move(incX, incY);
         }
     }
 
