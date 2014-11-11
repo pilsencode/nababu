@@ -89,24 +89,25 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         double tiltX = Math.asin(accX/totAcc);
         double tiltY = Math.asin(accY/totAcc);
         double tiltZ = Math.asin(accZ/totAcc);
-        Log.d("nababu", "values: tiltX: " + tiltX + ", tiltY: " + tiltY + ", tiltZ: " + tiltZ);
+        //Log.d("nababu", "values: tiltX: " + tiltX + ", tiltY: " + tiltY + ", tiltZ: " + tiltZ);
 
-        int incX = 0;
-        int incY = 0;
-        if (tiltX < -0.5f) {
-            incX = -10;
-        }
-        if (tiltX > 0.5f) {
-            incX = 10;
-        }
-        if (tiltY < -0.5f) {
-            incY = 10;
-        }
-        if (tiltY > 0.5f) {
-            incY = -10;
-        }
-        if (0 != incX || 0 != incY) {
-            mView.move(incX, incY);
+        int speedX = (int)(tiltX * 2 / Math.PI * 25);
+        int speedY = (int)(-tiltY * 2 / Math.PI * 25);
+//        if (tiltX < -0.5f) {
+//            incX = -10;
+//        }
+//        if (tiltX > 0.5f) {
+//            incX = 10;
+//        }
+//        if (tiltY < -0.5f) {
+//            incY = 10;
+//        }
+//        if (tiltY > 0.5f) {
+//            incY = -10;
+//        }
+        if (0 != speedX || 0 != speedY) {
+            Log.d("nababu", "MOVE");
+            mView.move(speedX, speedY);
         }
     }
 
