@@ -13,7 +13,7 @@ public class PlayingFieldView extends View {
 
     public int x = -1;
     public int y = -1;
-    public int radius = 100;
+    private Player me;
 
     public PlayingFieldView(Context context) {
         super(context);
@@ -25,19 +25,19 @@ public class PlayingFieldView extends View {
         if (-1 == x) {
             x = getWidth();
             y = getHeight();
+            me = new Player();
         }
 
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.WHITE);
         canvas.drawPaint(paint);
-        paint.setColor(Color.parseColor("#CD5C5C"));
-        canvas.drawCircle(x / 2, y / 2, radius, paint);
+
+        me.draw(canvas);
     }
 
     public void move(int incX, int incY) {
-        x += incX;
-        y += incY;
+        me.move(incX, incY);
         invalidate();
     }
 }

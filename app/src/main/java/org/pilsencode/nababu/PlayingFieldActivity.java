@@ -11,8 +11,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 /**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
+ * Created by veny on 5.11.14.
  */
 public class PlayingFieldActivity extends Activity implements SensorEventListener {
 
@@ -86,6 +85,7 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         double accY = -y/SensorManager.GRAVITY_EARTH;
         double accZ = z/SensorManager.GRAVITY_EARTH;
         double totAcc = Math.sqrt((accX*accX)+(accY*accY)+(accZ*accZ));
+        // tiltXYZ: returned angle is in the range -pi/2 through pi/2
         double tiltX = Math.asin(accX/totAcc);
         double tiltY = Math.asin(accY/totAcc);
         double tiltZ = Math.asin(accZ/totAcc);
