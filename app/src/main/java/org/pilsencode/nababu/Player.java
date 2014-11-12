@@ -8,38 +8,46 @@ import android.graphics.Point;
 /**
  * Created by veny on 11.11.14.
  */
-public class Player implements Drawable {
+public class Player {
 
     private String name;
 
-    private int spotRadius;
+    private int radius = 30;
 
-    private Point spotCoordinates;
+    private Point coordinates;
 
-    private Color spotColor; // = Color.parseColor("#0000AA");
+    private int color = Color.rgb(0, 0, 255);
 
     private boolean baba = false;
 
-    public Player() {
-        spotCoordinates = new Point();
-        spotCoordinates.x = 200;
-        spotCoordinates.y = 200;
-        spotRadius = 30;
+    public Player(String name) {
+        this.name = name;
+        coordinates = new Point();
+        coordinates.x = radius;
+        coordinates.y = radius;
     }
 
-    public void move(int incX, int incY) {
-        spotCoordinates.x += incX;
-        spotCoordinates.y += incY;
+    public Point getCoordinates() {
+        return coordinates;
     }
 
-    Paint paint = new Paint();
-
-    @Override
-    public void draw(Canvas canvas) {
-        paint.setColor(Color.parseColor("#CD5C5C"));
-        canvas.drawCircle(spotCoordinates.x, spotCoordinates.y, spotRadius, paint);
+    public int getRadius() {
+        return radius;
     }
 
+    public int getColor() {
+        return color;
+    }
+
+    public boolean isBaba() {
+        return baba;
+    }
+
+    public String getSymbol() {
+        return name.substring(0, 1).toUpperCase();
+    }
+
+    // ----------------------------------------------------------- Object Stuff
 
     @Override
     public int hashCode() {

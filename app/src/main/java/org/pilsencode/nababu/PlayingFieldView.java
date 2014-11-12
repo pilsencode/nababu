@@ -11,9 +11,7 @@ import android.view.View;
  */
 public class PlayingFieldView extends View {
 
-    public int x = -1;
-    public int y = -1;
-    private Player me;
+    private boolean intialized = false;
 
     public PlayingFieldView(Context context) {
         super(context);
@@ -22,22 +20,24 @@ public class PlayingFieldView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (-1 == x) {
-            x = getWidth();
-            y = getHeight();
-            me = new Player();
+
+        PlayingFieldActivity ctx = (PlayingFieldActivity) getContext();
+        Game game = ctx.getGame();
+
+        if (!intialized) {
+            // set size of playing filed
+            game.setFieldSize(getWidth(), getHeight());
+
+            // draw background
+            Paint paint = new Paint();
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(Color.WHITE);
+            canvas.drawPaint(paint);
+
+            intialized = true;
         }
 
-        Paint paint = new Paint();
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.WHITE);
-        canvas.drawPaint(paint);
-
-        me.draw(canvas);
+        game.draw(canvas);
     }
 
-    public void move(int incX, int incY) {
-        me.move(incX, incY);
-        invalidate();
-    }
 }
