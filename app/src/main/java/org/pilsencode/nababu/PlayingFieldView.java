@@ -37,7 +37,11 @@ public class PlayingFieldView extends View {
     }
 
     public void move(int incX, int incY) {
-        me.move(incX, incY);
-        invalidate();
+        // null happened when started in emulator
+        if (me != null) {
+            me.move(incX, incY);
+            invalidate();
+        }
     }
+
 }
