@@ -2,8 +2,10 @@
 <resources>
 
     <string name="app_name">Nababu</string>
-    <string name="button_host_game">Host Game</string>
-    <string name="button_join_game">Join Game</string>
-    <string name="label_username">Username:</string>
+    <string name="username">Username:</string>
+    <string name="start">Start</string>
+    <string name="host_game">Host Game</string>
+    <string name="join_game">Join Game</string>
+    <string name="waiting_for_others">Waiting for other players...</string>
 
 </resources>
