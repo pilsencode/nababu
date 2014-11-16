@@ -22,5 +22,5 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="@string/join_game"
-        android:onClick="sendMessage" />
+        android:onClick="joinGame" />
 </LinearLayout>
