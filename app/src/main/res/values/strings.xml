@@ -4,8 +4,11 @@
     <string name="app_name">Nababu</string>
     <string name="username">Username:</string>
     <string name="start">Start</string>
+    <string name="scan">Scan</string>
     <string name="host_game">Host Game</string>
     <string name="join_game">Join Game</string>
     <string name="waiting_for_others">Waiting for other players...</string>
+    <string name="paired_devices">Paired devices</string>
+    <string name="new_devices">New devices</string>
 
 </resources>
