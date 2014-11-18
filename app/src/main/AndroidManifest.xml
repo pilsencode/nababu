@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.pilsencode.nababu" >
+    package="org.pilsencode.nababu"
+    android:versionCode="1"
+    android:versionName="0.1 (alpha)">
 
     <application
         android:allowBackup="true"
