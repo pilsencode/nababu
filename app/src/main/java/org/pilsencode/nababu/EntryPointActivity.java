@@ -12,6 +12,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -60,6 +61,14 @@ public class EntryPointActivity extends Activity {
         if (!initBT()) { // failed initialization
             return;
         }
+        if (bluetoothAdapter.isEnabled()) {
+            serverThread = new ServerThread(bluetoothAdapter);
+            serverThread.start();
+        } else { // enable BT discoverability
+            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, BT_DISCOVERABLE_TIMEOUT);
+            startActivityForResult(discoverableIntent, REQUEST_DISCOVERABLE_BT_CODE);
+        }
         setContentView(R.layout.layout_host_game);
         // hides the soft keyboard
         InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -72,12 +81,6 @@ public class EntryPointActivity extends Activity {
                 this, android.R.layout.simple_list_item_1, android.R.id.text1, values);
         ListView listPlayers = (ListView) findViewById(R.id.list_of_players);
         listPlayers.setAdapter(adapter);
-
-
-        serverThread = new ServerThread(bluetoothAdapter);
-//        serverThread.start();
-
-        Toast.makeText(this, "OK", Toast.LENGTH_LONG);
     }
 
 
@@ -94,13 +97,20 @@ public class EntryPointActivity extends Activity {
         if (!initBT()) { // failed initialization
             return;
         }
+        // enable BT
+        if (!bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT_CODE);
+        }
+
         setContentView(R.layout.layout_join_game);
         // hides the soft keyboard
         InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
+        // PAIRED DEVICES
+
         pairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_in_list);
-        newDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_in_list);
 
         ListView pairedListView = (ListView) findViewById(R.id.list_of_paired_devices);
         pairedListView.setAdapter(pairedDevicesArrayAdapter);
@@ -116,6 +126,10 @@ public class EntryPointActivity extends Activity {
             String noDevices = getResources().getText(R.string.none_paired).toString();
             pairedDevicesArrayAdapter.add(noDevices);
         }
+
+        // NEW DEVICES
+
+        newDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_in_list);
 
 //        setProgressBarIndeterminateVisibility(true);
 //        // If we're already discovering, stop it
@@ -140,7 +154,9 @@ public class EntryPointActivity extends Activity {
     // -------------------------------------------------------- Bluetooth Stuff
 
     private BluetoothAdapter bluetoothAdapter;
-    private static final int REQUEST_ENABLE_BT = 3;
+    private static final int REQUEST_DISCOVERABLE_BT_CODE = 42;
+    private static final int REQUEST_ENABLE_BT_CODE = 43;
+    private static final int BT_DISCOVERABLE_TIMEOUT = 300;
     public static final String BT_NAME = "Nababu";
     // Unique UUID for this application
     public static final UUID BT_UUID = UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a77");
@@ -151,17 +167,27 @@ public class EntryPointActivity extends Activity {
             Toast.makeText(this, "Device does not support bluetooth", Toast.LENGTH_LONG);
             return false;
         }
-        if (!bluetoothAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-//        if (!bluetoothAdapter.isEnabled()) {
-//            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-//            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-//            startActivity(discoverableIntent);
-//        }
-
         return true;
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_ENABLE_BT_CODE:
+                //if (resultCode == Activity.RESULT_OK) {
+                // TODO [veny] implement it
+                break;
+
+            case REQUEST_DISCOVERABLE_BT_CODE:
+                if (resultCode == BT_DISCOVERABLE_TIMEOUT) {
+                    serverThread = new ServerThread(bluetoothAdapter);
+                    serverThread.start();
+                } // TODO [veny] implement 'else'
+                break;
+
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
+        }
+
+    }
 }
