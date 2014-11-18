@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 
+import java.security.InvalidParameterException;
+
 /**
  * Created by veny on 11.11.14.
  */
@@ -21,6 +23,10 @@ public class Player {
     private boolean baba = false;
 
     public Player(String name) {
+        if (null == name || 0 == name.trim().length()) {
+            throw new InvalidParameterException("name must be provided");
+            // TODO [veny] exception handling in android?
+        }
         this.name = name;
         coordinates = new Point();
         coordinates.x = radius;
