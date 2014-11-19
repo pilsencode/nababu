@@ -16,12 +16,15 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -115,6 +118,7 @@ public class EntryPointActivity extends Activity {
         pairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_in_list);
         ListView pairedListView = (ListView) findViewById(R.id.list_of_paired_devices);
         pairedListView.setAdapter(pairedDevicesArrayAdapter);
+        pairedListView.setOnItemClickListener(deviceListClickListener);
 
         // get a set of currently paired devices
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
@@ -133,18 +137,22 @@ public class EntryPointActivity extends Activity {
         newDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_in_list);
         ListView newListView = (ListView) findViewById(R.id.list_of_new_devices);
         newListView.setAdapter(newDevicesArrayAdapter);
+        newListView.setOnItemClickListener(deviceListClickListener);
 
         // Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(mReceiver, filter);
+        // TODO [veny] deregister receiver
 
         // Register for broadcasts when discovery has finished
         filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         this.registerReceiver(mReceiver, filter);
+        // TODO [veny] deregister receiver
 
+        //requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setProgressBarIndeterminateVisibility(true);
-//        // If we're already discovering, stop it
-//        if (bluetoothAdapter.isDiscovering()) {
+        // If we're already discovering, stop it
+//        if (bluetoothAdapter.isDiscovering()) { TODO [veny] enable this
 //            bluetoothAdapter.cancelDiscovery();
 //        }
         // Request discover from BluetoothAdapter
@@ -223,6 +231,30 @@ public class EntryPointActivity extends Activity {
                     newDevicesArrayAdapter.add(noDevices);
                 }
             }
+        }
+    };
+
+    // The on-click listener for all devices in the ListViews
+    private AdapterView.OnItemClickListener deviceListClickListener = new AdapterView.OnItemClickListener() {
+        public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
+            // Cancel discovery because it's costly and we're about to connect
+            bluetoothAdapter.cancelDiscovery();
+
+            // Get the device MAC address, which is the last 17 chars in the View
+            String info = ((TextView) v).getText().toString();
+            String address = info.split("\\n")[1];;
+
+            BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+            ClientThread ct = new ClientThread(bluetoothAdapter, device);
+            ct.start();
+
+//            // Create the result Intent and include the MAC address
+//            Intent intent = new Intent();
+//            intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
+//
+//            // Set result and finish this Activity
+//            setResult(Activity.RESULT_OK, intent);
+//            finish();
         }
     };
 }

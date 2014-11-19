@@ -6,6 +6,8 @@ import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Created by veny on 16.11.14.
@@ -36,9 +38,17 @@ public class ServerThread extends Thread {
             }
             // if a connection was accepted
             if (null != socket) {
-                // Do work to manage the connection (in a separate thread)
-                //manageConnectedSocket(socket);
-                //mmServerSocket.close();
+
+                try {
+                    InputStream in = socket.getInputStream();
+                    OutputStream out = socket.getOutputStream();
+
+                    byte[] buffer = new byte[1024];
+                    int bytes = in.read(buffer);
+                    out.write("NAZDAR".getBytes());
+
+                    socket.close();
+                } catch (IOException closeException) { }
                 break;
             }
         }
