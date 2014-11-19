@@ -6,23 +6,35 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+
 
 /**
  * Created by veny on 11.11.14.
  */
-public class Game implements Drawable {
+public class Game implements Drawable, Observer {
 
     public static final int BORDER_WIDTH = 10;
     public static final int BORDER_COLOR = Color.RED;
     public static final int BG_COLOR = Color.GRAY;
 
-    private Player me = new Player("veny");
-    private Set<Player> players = new HashSet<Player>();
+    private Player me;
+    private Map<String, Player> players = new HashMap<String, Player>();
 
     private int fieldSizeX;
     private int fieldSizeY;
+
+    public Game() {
+        me = new Player("veny");
+
+        addPlayer(me);
+
+        // add another player - temporary
+        addPlayer(new Player("AI"));
+    }
 
     public void setFieldSize(int x, int y) {
         fieldSizeX = x;
@@ -30,8 +42,8 @@ public class Game implements Drawable {
     }
 
     public void addPlayer(Player player) {
-        if (!players.contains(player)) {
-            players.add(player);
+        if (!players.containsKey(player.getName())) {
+            players.put(player.getName(), player);
         }
     }
 
@@ -77,21 +89,72 @@ public class Game implements Drawable {
                 BORDER_WIDTH, top + BORDER_WIDTH,
                 rectSize - BORDER_WIDTH, top + rectSize - BORDER_WIDTH, paint);
 
-        // draw 'me'
-        paint.setColor(me.getColor());
+        // draw 'app players'
+        drawPlayers(canvas, rectSize, top);
+    }
+
+    /**
+     * Render all players from the set
+     *
+     * @param canvas
+     * @param rectSize
+     * @param top
+     */
+    private void drawPlayers(Canvas canvas,int rectSize, int top) {
+        // render all players
+        for (Player player : players.values()) {
+            drawPlayer(canvas, player, rectSize, top);
+        }
+    }
+
+    /**
+     * Draw one player
+     *
+     * @param canvas
+     * @param player
+     * @param rectSize
+     * @param top
+     */
+    private void drawPlayer(Canvas canvas, Player player, int rectSize, int top) {
+        // draw player
+        paint.setColor(player.getColor());
         canvas.drawCircle(
-                BORDER_WIDTH + me.getCoordinates().x,
-                top + BORDER_WIDTH + me.getCoordinates().y,
-                me.getRadius(), paint);
-        // symbol on 'me'
-        int fontSize = me.getRadius() - 10;
+                BORDER_WIDTH + player.getCoordinates().x,
+                top + BORDER_WIDTH + player.getCoordinates().y,
+                player.getRadius(), paint);
+
+        // symbol on 'player'
+        int fontSize = player.getRadius() - 10;
         paint.setColor(Color.BLACK);
         paint.setTypeface(Typeface.DEFAULT);
         paint.setTextSize(fontSize);
         canvas.drawText(
-                me.getSymbol(),
-                BORDER_WIDTH + me.getCoordinates().x - (fontSize / 3),
-                top + BORDER_WIDTH + me.getCoordinates().y + (fontSize / 3), paint);
+                player.getSymbol(),
+                BORDER_WIDTH + player.getCoordinates().x - (fontSize / 3),
+                top + BORDER_WIDTH + player.getCoordinates().y + (fontSize / 3), paint);
+
     }
 
+    // temporary code till BT connection is ready - test observer
+    public void moveAI() {
+        Point point = this.players.get("AI").getCoordinates();
+
+        // create player with same nama to test update method
+        Player updated = new Player("AI");
+        updated.setCoordinates(new Point(point.x+2, point.y+2));
+
+        this.update(null, updated);
+    }
+
+    @Override
+    public void update(Observable observable, Object argument) {
+        // Currently I expect that updated player will come as paramater - TODO consult with vasy
+        Player updatedPlayer = (Player) argument;
+
+        // find player and update his coorinates
+        if (this.players.containsKey(updatedPlayer.getName())) {
+            this.players.get(updatedPlayer.getName()).setCoordinates(updatedPlayer.getCoordinates());
+        }
+
+    }
 }

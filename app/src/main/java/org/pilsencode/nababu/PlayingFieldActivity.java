@@ -8,9 +8,10 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.WindowManager;
+
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by veny on 5.11.14.
@@ -34,6 +35,18 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         mSensorAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
         game = new Game();
+
+        // temporary code till BT connection is ready - test observer
+        // TODO - replace with "game.update(null, player)" - player with new coordinates
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                game.moveAI();
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(task, new Date(), 300);
+        // temporary code end
 
 //        //setContentView(R.layout.activity_playing_field);
 //

@@ -1,8 +1,6 @@
 package org.pilsencode.nababu;
 
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Point;
 
 import java.security.InvalidParameterException;
@@ -28,9 +26,20 @@ public class Player {
             // TODO [veny] exception handling in android?
         }
         this.name = name;
+        this.color = getRandomColor();
+
         coordinates = new Point();
         coordinates.x = radius;
         coordinates.y = radius;
+    }
+
+    public Player(String name, int color) {
+        this(name);
+        this.color = color;
+    }
+
+    public void setCoordinates(Point coordinates) {
+        this.coordinates = coordinates;
     }
 
     public Point getCoordinates() {
@@ -43,6 +52,10 @@ public class Player {
 
     public int getColor() {
         return color;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public boolean isBaba() {
@@ -60,4 +73,7 @@ public class Player {
         return name.hashCode();
     }
 
+    private int getRandomColor() {
+        return Color.rgb(0, (int)(Math.random()*256), (int)(Math.random()*256));
+    }
 }
