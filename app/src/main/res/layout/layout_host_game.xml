@@ -12,14 +12,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/host_game"
-        android:textSize="20pt" />
+        android:textSize="15pt" />
 
     <TextView
         android:id="@+id/text_waiting"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/waiting_for_others"
-        android:textSize="10pt" />
+        android:textSize="8pt" />
 
     <ListView
         android:id="@+id/list_of_players"

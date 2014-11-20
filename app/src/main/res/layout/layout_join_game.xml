@@ -2,15 +2,24 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:paddingLeft="10dp"
-    android:paddingTop="10dp"
-    android:paddingRight="10dp"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
     android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/text_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/join_game"
+        android:textSize="15pt" />
 
     <TextView android:id="@+id/title_paired_devices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/paired_devices" />
+        android:textColor="#FF6600"
+        android:text="@string/paired_devices"
+        android:textSize="8pt" />
 
     <ListView
         android:id="@+id/list_of_paired_devices"
@@ -21,7 +30,9 @@
     <TextView android:id="@+id/title_new_devices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/new_devices" />
+        android:textColor="#FF6600"
+        android:text="@string/new_devices"
+        android:textSize="8pt" />
 
     <ListView
         android:id="@+id/list_of_new_devices"
