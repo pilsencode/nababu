@@ -196,7 +196,8 @@ showToast("ERR: " + connectException.toString());
                 OutputStream out = socket.getOutputStream();
                 PrintWriter pw = new PrintWriter(out);
 
-                pw.println(ActionEnum.JOIN.toString());
+                String packet = encodePacket(ActionEnum.JOIN, getUsername());
+                pw.println(packet);
                 pw.flush();
                 byte[] buffer = new byte[1024];
                 int bytes = in.read(buffer);

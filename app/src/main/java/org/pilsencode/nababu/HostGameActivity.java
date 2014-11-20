@@ -22,6 +22,7 @@ import java.io.OutputStream;
 public class HostGameActivity extends AbstractBTActivity {
 
     private ServerThread serverThread;
+    private ArrayAdapter<String> playersListAdapter;
 
 
     @Override
@@ -38,17 +39,22 @@ public class HostGameActivity extends AbstractBTActivity {
             startActivityForResult(discoverableIntent, REQUEST_DISCOVERABLE_BT_CODE);
         }
 
+        playersListAdapter = new ArrayAdapter<String>(this, R.layout.device_in_list);
+        ListView pairedListView = (ListView) findViewById(R.id.list_of_players);
+        pairedListView.setAdapter(playersListAdapter);
+
         // hides the soft keyboard
 //        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
 //        imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
-        // http://javatechig.com/android/android-listview-tutorial
-        String[] values = new String[] { "veny", "tomor", "ondra" };
-        // use your custom layout
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                this, android.R.layout.simple_list_item_1, android.R.id.text1, values);
-        ListView listPlayers = (ListView) findViewById(R.id.list_of_players);
-        listPlayers.setAdapter(adapter);
+        // fill list view with static data
+//        // http://javatechig.com/android/android-listview-tutorial
+//        String[] values = new String[] { "veny", "tomor", "ondra" };
+//        // use your custom layout
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+//                this, android.R.layout.simple_list_item_1, android.R.id.text1, values);
+//        ListView listPlayers = (ListView) findViewById(R.id.list_of_players);
+//        listPlayers.setAdapter(adapter);
     }
 
     @Override
@@ -114,8 +120,15 @@ showToast("BEFORE ACCEPT");
                         OutputStream out = socket.getOutputStream();
 
                         byte[] buffer = new byte[1024];
-                        int bytes = in.read(buffer);
-showToast("MSG: " + new String(buffer, "UTF-8"));
+                        int len = in.read(buffer);
+                        String packet = new String(buffer, 0, len - 1, "UTF-8");
+                        final String parts[] = packet.split(":");
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                playersListAdapter.add(parts[1]);
+                            }
+                        });
+showToast("MSG: " + packet);
                         out.write("NAZDAR".getBytes());
 
                         socket.close();
