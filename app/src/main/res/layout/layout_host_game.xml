@@ -18,8 +18,14 @@
         android:id="@+id/text_waiting"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="#FF6600"
         android:text="@string/waiting_for_others"
         android:textSize="8pt" />
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="#FF6600"/>
 
     <ListView
         android:id="@+id/list_of_players"

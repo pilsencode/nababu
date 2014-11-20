@@ -21,6 +21,11 @@
         android:text="@string/paired_devices"
         android:textSize="8pt" />
 
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="#FF6600"/>
+
     <ListView
         android:id="@+id/list_of_paired_devices"
         android:layout_width="match_parent"
@@ -33,6 +38,11 @@
         android:textColor="#FF6600"
         android:text="@string/new_devices"
         android:textSize="8pt" />
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="#FF6600"/>
 
     <ListView
         android:id="@+id/list_of_new_devices"
