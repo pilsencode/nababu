@@ -30,9 +30,10 @@
         android:layout_weight="1" />
 
     <Button android:id="@+id/button_scan"
+        android:enabled="false"
         android:layout_width="120dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="@string/scan"
-        android:onClick="notImplementedYet" />
+        android:onClick="scanDevices" />
 </LinearLayout>
