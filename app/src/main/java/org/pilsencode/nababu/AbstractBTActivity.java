@@ -94,10 +94,9 @@ public abstract class AbstractBTActivity extends Activity {
     }
 
     protected String encodePacket(ActionEnum action, Object... args) {
-        StringBuffer rslt = new StringBuffer(action.toString());
-        for (int i = 0; i < args.length; i ++) {
-            rslt.append(':');
-            rslt.append(args[i].toString());
+        StringBuilder rslt = new StringBuilder(action.toString());
+        for (Object arg : args) {
+            rslt.append(':').append(arg.toString());
         }
         return rslt.toString();
     }

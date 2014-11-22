@@ -21,8 +21,7 @@ public class PlayingFieldView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        PlayingFieldActivity ctx = (PlayingFieldActivity) getContext();
-        Game game = ctx.getGame();
+        Game game = Game.getInstance();
 
         if (!intialized) {
             // set size of playing filed

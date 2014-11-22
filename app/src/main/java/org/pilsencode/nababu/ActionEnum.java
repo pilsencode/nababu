@@ -7,7 +7,7 @@ package org.pilsencode.nababu;
  */
 public enum ActionEnum {
 
-    JOIN,
+    JOIN, // (username)
     MOVE
 
 }

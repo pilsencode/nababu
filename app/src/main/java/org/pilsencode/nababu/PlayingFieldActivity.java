@@ -21,7 +21,6 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     private PlayingFieldView mView;
     private SensorManager mSensorManager;
     private Sensor mSensorAcc;
-    private Game game;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,14 +33,12 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-        game = new Game();
-
         // temporary code till BT connection is ready - test observer
         // TODO - replace with "game.update(null, player)" - player with new coordinates
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                game.moveAI();
+                Game.getInstance().moveAI();
             }
         };
         Timer timer = new Timer();
@@ -101,7 +98,7 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         int speedX = (int)(tiltX * 2 / Math.PI * 25);
         int speedY = (int)(-tiltY * 2 / Math.PI * 25);
         if (0 != speedX || 0 != speedY) {
-            game.moveMe(speedX, speedY);
+            Game.getInstance().moveMe(speedX, speedY);
             mView.invalidate();
         }
     }
@@ -109,10 +106,6 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // currently not used
-    }
-
-    public Game getGame() {
-        return game;
     }
 
 }

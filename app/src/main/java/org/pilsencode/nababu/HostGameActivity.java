@@ -10,9 +10,11 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 
 /**
  * Activity representing step of hosting the game as a server.
@@ -89,35 +91,38 @@ public class HostGameActivity extends AbstractBTActivity {
 
     private class ServerThread extends Thread {
 
-        private BluetoothServerSocket serverSocket = null;
+        private BluetoothServerSocket serverSocket;
 
         public ServerThread() {
             try {
                 serverSocket = getBluetoothAdapter().listenUsingRfcommWithServiceRecord(
                         AbstractBTActivity.BT_APP_NAME, AbstractBTActivity.BT_APP_UUID);
             } catch (IOException e) {
-                // TODO [veny] an android corresponding reaction
                 Log.e("nababu", "server socked failed", e);
+                cancel();
+showToast("ERR: " + e.toString());
             }
         }
 
         @Override
         public void run() {
             BluetoothSocket socket;
-            // Keep listening until exception occurs or a socket is returned
-            while (true) {
+
+            while (null != serverSocket) {
                 try {
-showToast("BEFORE ACCEPT");
                     socket = serverSocket.accept();
                 } catch (IOException e) {
+                    // TODO [veny] exception handling
                     break;
                 }
                 // if a connection was accepted
                 if (null != socket) {
+//                    ConnectedClientThread th = new ConnectedClientThread(socket);
+//                    th.start();
+//                    socket = null;
 
                     try {
                         InputStream in = socket.getInputStream();
-                        OutputStream out = socket.getOutputStream();
 
                         byte[] buffer = new byte[1024];
                         int len = in.read(buffer);
@@ -129,7 +134,6 @@ showToast("BEFORE ACCEPT");
                             }
                         });
 showToast("MSG: " + packet);
-                        out.write("NAZDAR".getBytes());
 
                         socket.close();
                     } catch (IOException e) {
@@ -145,8 +149,71 @@ showToast("ERR: " + e.toString());
          */
         public void cancel() {
             try {
-                serverSocket.close();
-            } catch (IOException e) { }
+                if (null != serverSocket) { serverSocket.close(); }
+            } catch (IOException e) {
+                Log.e("nababu", "failed to close server socket", e);
+            }
+            serverSocket = null;
+        }
+
+    }
+
+    // ------------------------------------------------------------------------
+
+    protected class ConnectedClientThread extends Thread {
+
+        private BluetoothSocket socket;
+        private BufferedReader reader;
+        private PrintWriter writer;
+
+        public ConnectedClientThread(BluetoothSocket socket) {
+            if (null == socket) { throw new NullPointerException("socket cannot be null"); }
+            this.socket = socket;
+
+            try {
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                writer = new PrintWriter(socket.getOutputStream());
+            } catch (IOException e) {
+                Log.e("nababu", "failed to initialize reader/writer", e);
+                cancel();
+showToast("ERR: " + e.toString());
+            }
+        }
+
+        public void run() {
+            while (null != socket) {
+                try {
+                    String packet = new String(reader.readLine());
+                    // Send the obtained bytes to the UI activity
+//                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
+//                        .sendToTarget();
+                } catch (IOException e) {
+                    Log.e("nababu", "failed to read from socket", e);
+                    cancel();
+showToast("ERR: " + e.toString());
+                }
+            }
+        }
+
+        /* Call this from the main activity to send data to the remote device */
+        public void write(String packet) {
+            writer.println(packet);
+        }
+
+        /* Call this from the main activity to shutdown the connection */
+        public void cancel() {
+            try {
+                if (null != reader) { reader.close(); }
+                if (null != writer) { writer.close(); }
+            } catch (IOException e) {
+                Log.e("nababu", "failed to close reader/writer", e);
+            }
+            try {
+                if (null != socket) { socket.close(); }
+            } catch (IOException e) {
+                Log.e("nababu", "failed to close socket", e);
+            }
+            socket = null;
         }
 
     }
