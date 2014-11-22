@@ -17,6 +17,8 @@ import java.util.Observer;
  */
 public class Game implements Drawable, Observer {
 
+    private static Game instance = null;
+
     public static final int BORDER_WIDTH = 10;
     public static final int BORDER_COLOR = Color.RED;
     public static final int BG_COLOR = Color.GRAY;
@@ -27,13 +29,25 @@ public class Game implements Drawable, Observer {
     private int fieldSizeX;
     private int fieldSizeY;
 
-    public Game() {
+    /**
+     * Private constructor to defeat instantiation of singleton.
+     */
+    private Game() {
         me = new Player("veny");
-
-        addPlayer(me);
 
         // add another player - temporary
         addPlayer(new Player("AI"));
+    }
+
+    /**
+     * Gets singleton instance of game.
+     * @return the game
+     */
+    public static Game getInstance() {
+        if (instance == null) {
+            instance = new Game();
+        }
+        return instance;
     }
 
     public void setFieldSize(int x, int y) {
@@ -90,7 +104,7 @@ public class Game implements Drawable, Observer {
                 rectSize - BORDER_WIDTH, top + rectSize - BORDER_WIDTH, paint);
 
         // draw 'app players'
-        drawPlayers(canvas, rectSize, top);
+        drawAllPlayers(canvas, rectSize, top);
     }
 
     /**
@@ -100,8 +114,9 @@ public class Game implements Drawable, Observer {
      * @param rectSize
      * @param top
      */
-    private void drawPlayers(Canvas canvas,int rectSize, int top) {
-        // render all players
+    private void drawAllPlayers(Canvas canvas, int rectSize, int top) {
+        drawPlayer(canvas, me, rectSize, top);
+        // render other players
         for (Player player : players.values()) {
             drawPlayer(canvas, player, rectSize, top);
         }
