@@ -12,7 +12,7 @@ public class Player {
 
     private String name;
 
-    private int radius = 30;
+    private int radius = 22;
 
     private Point coordinates;
 

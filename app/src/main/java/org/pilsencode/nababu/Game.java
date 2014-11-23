@@ -53,6 +53,7 @@ public class Game implements Drawable, Observer {
 
     public void addMe(String name) {
         me = new Player(name);
+        addPlayer(me);
     }
 
     public void addAI() {
@@ -120,8 +121,6 @@ public class Game implements Drawable, Observer {
      * @param top
      */
     private void drawAllPlayers(Canvas canvas, int rectSize, int top) {
-        drawPlayer(canvas, me, rectSize, top);
-        // render other players
         for (Player player : players.values()) {
             drawPlayer(canvas, player, rectSize, top);
         }
