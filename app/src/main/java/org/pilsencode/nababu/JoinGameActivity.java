@@ -193,8 +193,12 @@ showToast("ERR: " + e.toString());
             }
 
             // send username to server
-            write(encodePacket(ActionEnum.JOIN, getUsername()));
+            sendMessage(encodePacket(ActionEnum.JOIN, getUsername()));
 
+//            try{
+//            socket.getOutputStream().write(encodePacket(ActionEnum.JOIN, getUsername()).getBytes());
+//                socket.getOutputStream().flush();
+                //socket.getOutputStream().flush();
             // and wait reading forever (writing comes from another threads)
             while (null != socket) {
                 try {
@@ -207,13 +211,15 @@ showToast("ERR: " + e.toString());
 showToast("ERR: " + e.toString());
                 }
             }
+//cancel();
         }
 
         /**
          * Call this from another thread or the main activity to send data to the remote device.
          */
-        public void write(String packet) {
+        public void sendMessage(String packet) {
             writer.println(packet);
+            writer.flush();
         }
 
         /**

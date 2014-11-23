@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -117,29 +118,31 @@ showToast("ERR: " + e.toString());
                 }
                 // if a connection was accepted
                 if (null != socket) {
-//                    ConnectedClientThread th = new ConnectedClientThread(socket);
-//                    th.start();
-//                    socket = null;
+                    ConnectedClientThread th = new ConnectedClientThread(socket);
+                    th.start();
+                    socket = null;
 
-                    try {
-                        InputStream in = socket.getInputStream();
-
-                        byte[] buffer = new byte[1024];
-                        int len = in.read(buffer);
-                        String packet = new String(buffer, 0, len - 1, "UTF-8");
-                        final String parts[] = packet.split(":");
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                                playersListAdapter.add(parts[1]);
-                            }
-                        });
-showToast("MSG: " + packet);
-
-                        socket.close();
-                    } catch (IOException e) {
-showToast("ERR: " + e.toString());
-                    }
-                    break;
+//                    try {
+//                        BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                        String packet = new String(reader.readLine());
+//
+////                        byte[] buffer = new byte[1024];
+////                        int len = in.read(buffer);
+////                        String packet = new String(buffer, 0, len - 1, "UTF-8");
+//                        final String parts[] = packet.split(":");
+//                        runOnUiThread(new Runnable() {
+//                            public void run() {
+//                                playersListAdapter.add(parts[1]);
+//                            }
+//                        });
+//showToast("MSG: " + packet);
+//
+//                        socket.close();
+//                    } catch (IOException e) {
+//                        Log.e("nababu", "failed to read", e);
+//showToast("ERR_x: " + e.toString());
+//                    }
+//                    break;
                 }
             }
         }
@@ -181,23 +184,38 @@ showToast("ERR: " + e.toString());
         }
 
         public void run() {
+            byte[] buffer = new byte[1024];
             while (null != socket) {
                 try {
-                    String packet = new String(reader.readLine());
+//                    String packet = new String(reader.readLine());
+
+                        int len = socket.getInputStream().read(buffer);
+                        String packet = new String(buffer, 0, len - 1, "UTF-8");
+
+                    final String parts[] = packet.split(":");
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            playersListAdapter.add(parts[1]);
+                        }
+                    });
+Thread.sleep(500);
+//cancel();
+
                     // Send the obtained bytes to the UI activity
 //                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
 //                        .sendToTarget();
-                } catch (IOException e) {
+                } catch (Exception e) {
                     Log.e("nababu", "failed to read from socket", e);
                     cancel();
-showToast("ERR: " + e.toString());
+showToast("ERR 12: " + e.toString());
                 }
             }
         }
 
         /* Call this from the main activity to send data to the remote device */
-        public void write(String packet) {
+        public void sendMessage(String packet) {
             writer.println(packet);
+            writer.flush();
         }
 
         /* Call this from the main activity to shutdown the connection */
