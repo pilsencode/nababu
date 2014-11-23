@@ -1,6 +1,8 @@
 package org.pilsencode.nababu;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -55,6 +57,24 @@ public class EntryPointActivity extends Activity {
         Intent intent = new Intent(getBaseContext(), activity);
         intent.putExtra("USERNAME", txtUserName.getText().toString().trim());
         startActivity(intent);
+    }
+
+    /**
+     * Exit application confirmation dialog
+     *
+     * @Override
+     */
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to exit?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        EntryPointActivity.this.finish();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 
 }
