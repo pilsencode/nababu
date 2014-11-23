@@ -33,10 +33,6 @@ public class Game implements Drawable, Observer {
      * Private constructor to defeat instantiation of singleton.
      */
     private Game() {
-        me = new Player("veny");
-
-        // add another player - temporary
-        addPlayer(new Player("AI"));
     }
 
     /**
@@ -53,6 +49,15 @@ public class Game implements Drawable, Observer {
     public void setFieldSize(int x, int y) {
         fieldSizeX = x;
         fieldSizeY = y;
+    }
+
+    public void addMe(String name) {
+        me = new Player(name);
+    }
+
+    public void addAI() {
+        // add another player - temporary
+        addPlayer(new Player("AI"));
     }
 
     public void addPlayer(Player player) {
