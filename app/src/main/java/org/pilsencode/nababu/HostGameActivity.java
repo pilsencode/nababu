@@ -83,7 +83,7 @@ public class HostGameActivity extends AbstractBTActivity {
      */
     public void startGame(View view) {
         Intent intent = new Intent(this, PlayingFieldActivity.class);
-        intent.putExtra("USERNAME", getUsername());
+        intent.putExtra(EntryPointActivity.USERNAME, getUsername());
         startActivity(intent);
     }
 

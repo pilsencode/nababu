@@ -15,6 +15,10 @@ import android.widget.Toast;
  * Created by veny on 13.11.14.
  */
 public class EntryPointActivity extends Activity {
+    /**
+     * Key for passing username to another activity via Intent
+     */
+    public final static String USERNAME = "org.pilsencode.nababu.USERNAME";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +59,7 @@ public class EntryPointActivity extends Activity {
         }
 
         Intent intent = new Intent(getBaseContext(), activity);
-        intent.putExtra("USERNAME", txtUserName.getText().toString().trim());
+        intent.putExtra(USERNAME, txtUserName.getText().toString().trim());
         startActivity(intent);
     }
 
