@@ -53,6 +53,9 @@ public class Game implements Drawable, Observer {
 
     public void addMe(String name) {
         me = new Player(name);
+
+        // I'm baba
+        me.setBaba(true);
         addPlayer(me);
     }
 
@@ -144,8 +147,14 @@ public class Game implements Drawable, Observer {
 
         // symbol on 'player'
         int fontSize = player.getRadius() - 10;
-        paint.setColor(Color.BLACK);
-        paint.setTypeface(Typeface.DEFAULT);
+        // mark baba with red color
+        if (player.isBaba()) {
+            paint.setColor(Color.RED);
+        } else {
+            paint.setColor(Color.BLACK);
+        }
+
+        paint.setTypeface(Typeface.MONOSPACE);
         paint.setTextSize(fontSize);
         canvas.drawText(
                 player.getSymbol(),

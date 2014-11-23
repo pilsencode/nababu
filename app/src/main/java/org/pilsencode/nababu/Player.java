@@ -62,6 +62,10 @@ public class Player {
         return baba;
     }
 
+    public void setBaba(boolean baba) {
+        this.baba = baba;
+    }
+
     public String getSymbol() {
         return name.substring(0, 1).toUpperCase();
     }
