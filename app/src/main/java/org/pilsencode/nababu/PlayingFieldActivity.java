@@ -33,6 +33,12 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
+        Bundle extras = getIntent().getExtras();
+        String myUsername = extras.getString(EntryPointActivity.USERNAME);
+
+        Game.getInstance().addMe(myUsername);
+        Game.getInstance().addAI();
+
         // temporary code till BT connection is ready - test observer
         // TODO - replace with "game.update(null, player)" - player with new coordinates
         TimerTask task = new TimerTask() {

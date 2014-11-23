@@ -33,10 +33,6 @@ public class Game implements Drawable, Observer {
      * Private constructor to defeat instantiation of singleton.
      */
     private Game() {
-        me = new Player("veny");
-
-        // add another player - temporary
-        addPlayer(new Player("AI"));
     }
 
     /**
@@ -53,6 +49,19 @@ public class Game implements Drawable, Observer {
     public void setFieldSize(int x, int y) {
         fieldSizeX = x;
         fieldSizeY = y;
+    }
+
+    public void addMe(String name) {
+        me = new Player(name);
+
+        // I'm baba
+        me.setBaba(true);
+        addPlayer(me);
+    }
+
+    public void addAI() {
+        // add another player - temporary
+        addPlayer(new Player("AI"));
     }
 
     public void addPlayer(Player player) {
@@ -115,8 +124,6 @@ public class Game implements Drawable, Observer {
      * @param top
      */
     private void drawAllPlayers(Canvas canvas, int rectSize, int top) {
-        drawPlayer(canvas, me, rectSize, top);
-        // render other players
         for (Player player : players.values()) {
             drawPlayer(canvas, player, rectSize, top);
         }
@@ -140,8 +147,14 @@ public class Game implements Drawable, Observer {
 
         // symbol on 'player'
         int fontSize = player.getRadius() - 10;
-        paint.setColor(Color.BLACK);
-        paint.setTypeface(Typeface.DEFAULT);
+        // mark baba with red color
+        if (player.isBaba()) {
+            paint.setColor(Color.RED);
+        } else {
+            paint.setColor(Color.BLACK);
+        }
+
+        paint.setTypeface(Typeface.MONOSPACE);
         paint.setTextSize(fontSize);
         canvas.drawText(
                 player.getSymbol(),

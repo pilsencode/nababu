@@ -33,7 +33,7 @@ public abstract class AbstractBTActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         Bundle extras = getIntent().getExtras();
-        username = extras.getString("USERNAME");
+        username = extras.getString(EntryPointActivity.USERNAME);
         Toast.makeText(this, "USERNAME " + username, Toast.LENGTH_LONG);
 
         // init Bluetooth

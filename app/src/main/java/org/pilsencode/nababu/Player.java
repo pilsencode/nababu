@@ -12,7 +12,7 @@ public class Player {
 
     private String name;
 
-    private int radius = 30;
+    private int radius = 22;
 
     private Point coordinates;
 
@@ -60,6 +60,10 @@ public class Player {
 
     public boolean isBaba() {
         return baba;
+    }
+
+    public void setBaba(boolean baba) {
+        this.baba = baba;
     }
 
     public String getSymbol() {
