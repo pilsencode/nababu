@@ -32,8 +32,7 @@ public class Game implements Drawable, Observer {
     /**
      * Private constructor to defeat instantiation of singleton.
      */
-    private Game() {
-    }
+    private Game() { }
 
     /**
      * Gets singleton instance of game.
@@ -51,12 +50,11 @@ public class Game implements Drawable, Observer {
         fieldSizeY = y;
     }
 
-    public void addMe(String name) {
+    public void setMe(String name) {
         me = new Player(name);
 
         // I'm baba
         me.setBaba(true);
-        addPlayer(me);
     }
 
     public void addAI() {
@@ -87,6 +85,19 @@ public class Game implements Drawable, Observer {
         if (coordinates.y > (innerSize - me.getRadius())) {
             coordinates.y = innerSize - me.getRadius();
         }
+    }
+
+    public void reset() {
+        if (null != me && null != me.getCommunicator()) {
+            me.getCommunicator().finish();
+        }
+        me = null;
+        for (Player player : players.values()) {
+            if (null != player && null != player.getCommunicator()) {
+                player.getCommunicator().finish();
+            }
+        }
+        players.clear();
     }
 
     // --------------------------------------------------------- Drawable Stuff
@@ -124,6 +135,7 @@ public class Game implements Drawable, Observer {
      * @param top
      */
     private void drawAllPlayers(Canvas canvas, int rectSize, int top) {
+        drawPlayer(canvas, me, rectSize, top);
         for (Player player : players.values()) {
             drawPlayer(canvas, player, rectSize, top);
         }
@@ -165,6 +177,10 @@ public class Game implements Drawable, Observer {
 
     // temporary code till BT connection is ready - test observer
     public void moveAI() {
+        if (!players.containsKey("AI")) {
+            return;
+        }
+
         Point point = this.players.get("AI").getCoordinates();
 
         // create player with same nama to test update method
@@ -183,6 +199,5 @@ public class Game implements Drawable, Observer {
         if (this.players.containsKey(updatedPlayer.getName())) {
             this.players.get(updatedPlayer.getName()).setCoordinates(updatedPlayer.getCoordinates());
         }
-
     }
 }
