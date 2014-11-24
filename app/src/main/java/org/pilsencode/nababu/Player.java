@@ -20,6 +20,8 @@ public class Player {
 
     private boolean baba = false;
 
+    private Communicator communicator;
+
     public Player(String name) {
         if (null == name || 0 == name.trim().length()) {
             throw new InvalidParameterException("name must be provided");
@@ -68,6 +70,13 @@ public class Player {
 
     public String getSymbol() {
         return name.substring(0, 1).toUpperCase();
+    }
+
+    public Communicator getCommunicator() {
+        return communicator;
+    }
+    public void setCommunicator(Communicator communicator) {
+        this.communicator = communicator;
     }
 
     // ----------------------------------------------------------- Object Stuff

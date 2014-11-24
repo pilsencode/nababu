@@ -64,10 +64,9 @@ public class EntryPointActivity extends Activity {
     }
 
     /**
-     * Exit application confirmation dialog
-     *
-     * @Override
+     * Exit application confirmation dialog.
      */
+    @Override
     public void onBackPressed() {
         new AlertDialog.Builder(this)
                 .setMessage("Are you sure you want to exit?")

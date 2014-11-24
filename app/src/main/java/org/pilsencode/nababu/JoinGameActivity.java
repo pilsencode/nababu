@@ -76,7 +76,7 @@ public class JoinGameActivity extends AbstractBTActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (null != clientThread) {
-            clientThread.cancel();
+            clientThread.finish();
         }
     }
 
@@ -156,7 +156,7 @@ public class JoinGameActivity extends AbstractBTActivity {
 
     // ------------------------------------------------------------------------
 
-    private class ClientThread extends Thread {
+    private class ClientThread extends Thread implements Communicator {
 
         private BluetoothSocket socket;
         private BufferedReader reader;
@@ -170,7 +170,7 @@ public class JoinGameActivity extends AbstractBTActivity {
                 socket = device.createRfcommSocketToServiceRecord(AbstractBTActivity.BT_APP_UUID);
             } catch (IOException e) {
                 Log.e("nababu", "failed to acquire socket", e);
-                cancel();
+                finish();
 showToast("ERR: " + e.toString());
             }
         }
@@ -187,7 +187,7 @@ showToast("ERR: " + e.toString());
                     writer = new PrintWriter(socket.getOutputStream());
                 } catch (IOException e) {
                     Log.e("nababu", "failed to connect", e);
-                    cancel();
+                    finish();
 showToast("ERR: " + e.toString());
                 }
             }
@@ -195,37 +195,42 @@ showToast("ERR: " + e.toString());
             // send username to server
             sendMessage(encodePacket(ActionEnum.JOIN, getUsername()));
 
-//            try{
-//            socket.getOutputStream().write(encodePacket(ActionEnum.JOIN, getUsername()).getBytes());
-//                socket.getOutputStream().flush();
-                //socket.getOutputStream().flush();
             // and wait reading forever (writing comes from another threads)
             while (null != socket) {
                 try {
                     String packet = new String(reader.readLine());
+showToast("RESP: " + packet);
                     // Send the obtained bytes to the UI activity
 //                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                 } catch (IOException e) {
                     Log.e("nababu", "failed to read from socket", e);
-                    cancel();
+                    finish();
 showToast("ERR: " + e.toString());
                 }
             }
-//cancel();
         }
 
-        /**
-         * Call this from another thread or the main activity to send data to the remote device.
-         */
+        @Override
         public void sendMessage(String packet) {
-            writer.println(packet);
+long start = System.currentTimeMillis();
+            writer.println(packet + "\n");
             writer.flush();
+showToast("AAAAAAAAAA: " + (System.currentTimeMillis() - start));
+
+//            try {
+//                packet += "\n";
+//                socket.getOutputStream().write(packet.getBytes());
+////                socket.getOutputStream().flush();
+//showToast("AAAAAAAAAAAAAAAAAAAAAAAA");
+//            } catch (IOException e) {
+//                Log.e("nababu", "failed to send data", e);
+//                cancel();
+//showToast("ERR: " + e.toString());
+//            }
         }
 
-        /**
-         * Will cancel the listening socket, and cause the thread to finish.
-         */
-        public void cancel() {
+        @Override
+        public void finish() {
             try {
                 if (null != reader) { reader.close(); }
                 if (null != writer) { writer.close(); }

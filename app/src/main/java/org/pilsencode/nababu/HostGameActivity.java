@@ -11,11 +11,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Activity representing step of hosting the game as a server.
@@ -33,14 +33,6 @@ public class HostGameActivity extends AbstractBTActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.layout_host_game);
-
-        if (getBluetoothAdapter().isEnabled()) {
-            btPrepared4Server();
-        } else { // enable BT discoverability
-            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, BT_DISCOVERABLE_TIMEOUT);
-            startActivityForResult(discoverableIntent, REQUEST_DISCOVERABLE_BT_CODE);
-        }
 
         playersListAdapter = new ArrayAdapter<String>(this, R.layout.device_in_list);
         ListView pairedListView = (ListView) findViewById(R.id.list_of_players);
@@ -61,17 +53,47 @@ public class HostGameActivity extends AbstractBTActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (null != serverThread) {
-            serverThread.cancel();
+    protected void onStart() {
+        // Called just before the activity becomes visible to the user.
+        super.onStart();
+showToast("ON_START");
+
+        // reset the game, maybe coming back from PlayingField
+        Game.getInstance().reset();
+
+        if (getBluetoothAdapter().isEnabled()) {
+            btPrepared4Server();
+        } else { // enable BT discoverability
+            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, BT_DISCOVERABLE_TIMEOUT);
+            startActivityForResult(discoverableIntent, REQUEST_DISCOVERABLE_BT_CODE);
         }
     }
 
     @Override
+    protected void onStop() {
+        // Called when the activity is no longer visible to the user.
+        // This may happen because it is being destroyed,
+        // or because another activity (either an existing one or a new one)
+        // has been resumed and is covering it.
+        super.onStop();
+showToast("ON_STOP");
+
+        // stop listening for incoming connection
+        if (null != serverThread) {
+            serverThread.cancel();
+            serverThread = null;
+        }
+    }
+
+
+    @Override
     protected void btPrepared4Server() {
+        // start listening for incoming connections
         serverThread = new ServerThread();
         serverThread.start();
+
+        Game.getInstance().setMe(getUsername());
     }
 
     @Override
@@ -84,7 +106,6 @@ public class HostGameActivity extends AbstractBTActivity {
      */
     public void startGame(View view) {
         Intent intent = new Intent(this, PlayingFieldActivity.class);
-        intent.putExtra(EntryPointActivity.USERNAME, getUsername());
         startActivity(intent);
     }
 
@@ -93,6 +114,7 @@ public class HostGameActivity extends AbstractBTActivity {
     private class ServerThread extends Thread {
 
         private BluetoothServerSocket serverSocket;
+        private List<ConnectedClientThread> clientThreads = new ArrayList<ConnectedClientThread>();
 
         public ServerThread() {
             try {
@@ -119,30 +141,9 @@ showToast("ERR: " + e.toString());
                 // if a connection was accepted
                 if (null != socket) {
                     ConnectedClientThread th = new ConnectedClientThread(socket);
+                    clientThreads.add(th);
                     th.start();
                     socket = null;
-
-//                    try {
-//                        BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                        String packet = new String(reader.readLine());
-//
-////                        byte[] buffer = new byte[1024];
-////                        int len = in.read(buffer);
-////                        String packet = new String(buffer, 0, len - 1, "UTF-8");
-//                        final String parts[] = packet.split(":");
-//                        runOnUiThread(new Runnable() {
-//                            public void run() {
-//                                playersListAdapter.add(parts[1]);
-//                            }
-//                        });
-//showToast("MSG: " + packet);
-//
-//                        socket.close();
-//                    } catch (IOException e) {
-//                        Log.e("nababu", "failed to read", e);
-//showToast("ERR_x: " + e.toString());
-//                    }
-//                    break;
                 }
             }
         }
@@ -157,13 +158,17 @@ showToast("ERR: " + e.toString());
                 Log.e("nababu", "failed to close server socket", e);
             }
             serverSocket = null;
+            for (ConnectedClientThread clientThread : clientThreads) {
+                clientThread.finish();
+            }
+            clientThreads.clear();
         }
 
     }
 
     // ------------------------------------------------------------------------
 
-    protected class ConnectedClientThread extends Thread {
+    protected class ConnectedClientThread extends Thread implements Communicator {
 
         private BluetoothSocket socket;
         private BufferedReader reader;
@@ -178,7 +183,7 @@ showToast("ERR: " + e.toString());
                 writer = new PrintWriter(socket.getOutputStream());
             } catch (IOException e) {
                 Log.e("nababu", "failed to initialize reader/writer", e);
-                cancel();
+                finish();
 showToast("ERR: " + e.toString());
             }
         }
@@ -193,33 +198,45 @@ showToast("ERR: " + e.toString());
                         String packet = new String(buffer, 0, len - 1, "UTF-8");
 
                     final String parts[] = packet.split(":");
+                    final String username = parts[1];
+                    Player player = new Player(username);
+                    player.setCommunicator(ConnectedClientThread.this);
+                    Game.getInstance().addPlayer(player);
                     runOnUiThread(new Runnable() {
                         public void run() {
-                            playersListAdapter.add(parts[1]);
+                            playersListAdapter.add(username);
                         }
                     });
-Thread.sleep(500);
-//cancel();
+Thread.sleep(1000);
+sendMessage("OK");
 
                     // Send the obtained bytes to the UI activity
 //                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
 //                        .sendToTarget();
                 } catch (Exception e) {
                     Log.e("nababu", "failed to read from socket", e);
-                    cancel();
+                    finish();
 showToast("ERR 12: " + e.toString());
                 }
             }
         }
 
-        /* Call this from the main activity to send data to the remote device */
+        @Override
         public void sendMessage(String packet) {
             writer.println(packet);
             writer.flush();
+//
+//            try {
+//                socket.getOutputStream().write(packet.getBytes());
+//            } catch (IOException e) {
+//                Log.e("nababu", "failed to send data", e);
+//                cancel();
+//showToast("ERR: " + e.toString());
+//            }
         }
 
-        /* Call this from the main activity to shutdown the connection */
-        public void cancel() {
+        @Override
+        public void finish() {
             try {
                 if (null != reader) { reader.close(); }
                 if (null != writer) { writer.close(); }
