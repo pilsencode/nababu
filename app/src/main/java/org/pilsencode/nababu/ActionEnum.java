@@ -10,6 +10,7 @@ public enum ActionEnum {
     OK,
     JOIN, // (username)
     MOVE, // (username, incX, incY)
+    START,
     QUIT // (username)
 
 }
