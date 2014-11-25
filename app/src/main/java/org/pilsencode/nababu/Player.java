@@ -20,6 +20,8 @@ public class Player {
 
     private boolean baba = false;
 
+    private Communicator communicator;
+
     public Player() {
         color = getRandomColor();
         coordinates = new Point();
@@ -69,6 +71,18 @@ public class Player {
 
     public String getSymbol() {
         return name.substring(0, 1).toUpperCase();
+    }
+
+    /**
+     * Gets communicator associated with this player.
+     *
+     * @return associated communicator
+     */
+    public Communicator getCommunicator() {
+        return communicator;
+    }
+    public void setCommunicator(Communicator c) {
+        communicator = c;
     }
 
     /**

@@ -68,9 +68,6 @@ public class Game implements Drawable, Observer {
     }
 
     public void addPlayer(Player player) {
-        if (null == player.getName()) {
-            throw new NullPointerException("username cannot be null");
-        }
         players.add(player);
     }
 
@@ -103,7 +100,13 @@ public class Game implements Drawable, Observer {
     }
 
     public void reset() {
+        if (null != me && null != me.getCommunicator()) {
+            me.getCommunicator().finish();
+        }
         me = null;
+        for (Player p : players) {
+            if (null != p.getCommunicator()) { p.getCommunicator().finish(); }
+        }
         players.clear();
     }
 

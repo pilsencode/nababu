@@ -62,10 +62,10 @@ showToast("ON_START");
         // reset the game, maybe coming back from PlayingField
         Game.getInstance().reset();
         // and stop listening thread of communicator
-        if (null != clientThread) {
-            clientThread.finish();
-            clientThread = null;
-        }
+//        if (null != clientThread) {
+//            clientThread.finish();
+//            clientThread = null;
+//        }
 
         // clear listed devices
         pairedDevicesArrayAdapter.clear();
@@ -172,7 +172,6 @@ showToast("ON_START");
         private BluetoothSocket socket;
         private BufferedReader reader;
         private PrintWriter writer;
-        private Player player;
 
         public ClientThread(String address) {
             // get a BluetoothSocket to connect with the given BluetoothDevice
@@ -189,6 +188,8 @@ showToast("ERR: " + e.toString());
 
         @Override
         public void run() {
+            Player player = new Player(getUsername());
+
             if (null != socket) { // unless constructor failed
                 // cancel discovery because it will slow down the connection
                 getBluetoothAdapter().cancelDiscovery();
@@ -197,7 +198,8 @@ showToast("ERR: " + e.toString());
                     socket.connect();
                     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     writer = new PrintWriter(socket.getOutputStream());
-                    player = new Player(getUsername());
+
+                    player.setCommunicator(this);
                     Game.getInstance().setMe(player);
                 } catch (IOException e) {
                     Log.e("nababu", "failed to connect", e);
@@ -257,11 +259,6 @@ showToast("AAAAAAAAAA: " + (System.currentTimeMillis() - start));
                 Log.e("nababu", "failed to close socket", e);
             }
             socket = null;
-        }
-
-        @Override
-        public Player getPlayer() {
-            return player;
         }
 
     }

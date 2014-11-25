@@ -20,10 +20,4 @@ public interface Communicator {
      */
     void finish();
 
-    /**
-     * Gets player associated with this communicator.
-     *
-     * @return associated player
-     */
-    Player getPlayer();
 }

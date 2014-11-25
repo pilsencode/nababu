@@ -14,8 +14,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Activity representing step of hosting the game as a server.
@@ -26,7 +24,6 @@ public class HostGameActivity extends AbstractBTActivity {
 
     private ServerThread serverThread;
     private ArrayAdapter<String> playersListAdapter;
-    private List<Communicator> communicators = new ArrayList<Communicator>();
 
 
     @Override
@@ -61,11 +58,6 @@ showToast("ON_START");
 
         // reset the game, maybe coming back from PlayingField
         Game.getInstance().reset();
-        // and stop all listening threads
-        for (Communicator c : communicators) {
-            c.finish();
-        }
-        communicators.clear();
 
         if (getBluetoothAdapter().isEnabled()) {
             btPrepared4Server();
@@ -146,7 +138,6 @@ showToast("ON_STOP");
                 // if a connection was accepted
                 if (null != socket) {
                     ConnectedClientThread th = new ConnectedClientThread(socket);
-                    communicators.add(th);
                     th.start();
                     socket = null;
                 }
@@ -176,12 +167,10 @@ showToast("ON_STOP");
         private BluetoothSocket socket;
         private BufferedReader reader;
         private PrintWriter writer;
-        private Player player;
 
         public ConnectedClientThread(BluetoothSocket socket) {
             if (null == socket) { throw new NullPointerException("socket cannot be null"); }
             this.socket = socket;
-            player = new Player();
 
             try {
                 reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -193,6 +182,9 @@ showToast("ON_STOP");
         }
 
         public void run() {
+            Player player = new Player();
+            player.setCommunicator(this);
+
             byte[] buffer = new byte[1024];
             while (null != socket) {
                 try {
@@ -210,7 +202,6 @@ showToast("ON_STOP");
                             playersListAdapter.add(username);
                         }
                     });
-Thread.sleep(1000);
 sendMessage("OK");
 
                     // Send the obtained bytes to the UI activity
@@ -251,11 +242,6 @@ sendMessage("OK");
                 Log.e("nababu", "failed to close socket", e);
             }
             socket = null;
-        }
-
-        @Override
-        public Player getPlayer() {
-            return player;
         }
 
     }
