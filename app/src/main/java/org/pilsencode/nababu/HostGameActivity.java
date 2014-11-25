@@ -120,6 +120,7 @@ showToast("ON_STOP");
     private class ServerThread extends Thread {
 
         private BluetoothServerSocket serverSocket;
+        private boolean running = true;
 
         public ServerThread() {
             try {
@@ -135,11 +136,11 @@ showToast("ON_STOP");
         public void run() {
             BluetoothSocket socket;
 
-            while (null != serverSocket) {
+            while (running && null != serverSocket) {
                 try {
                     socket = serverSocket.accept();
                 } catch (IOException e) {
-                    handleCaughtException("failed to accept socket", e);
+                    if (Game.D) { Log.d(Game.TAG, "failed to accept socket", e); }
                     socket = null;
                 }
                 // if a connection was accepted
@@ -156,7 +157,9 @@ showToast("ON_STOP");
          * Will cancel the listening socket, and cause the thread to finish.
          */
         public void cancel() {
+            running = false;
             try {
+                // this produces exception on 'serverSocket.accept()'
                 if (null != serverSocket) { serverSocket.close(); }
             } catch (IOException e) {
                 Log.e("nababu", "failed to close server socket", e);
