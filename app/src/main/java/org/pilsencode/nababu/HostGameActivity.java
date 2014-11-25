@@ -36,6 +36,9 @@ public class HostGameActivity extends AbstractBTActivity {
         ListView pairedListView = (ListView) findViewById(R.id.list_of_players);
         pairedListView.setAdapter(playersListAdapter);
 
+
+        Game.getInstance().setServer(true);
+
         // hides the soft keyboard
 //        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
 //        imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);

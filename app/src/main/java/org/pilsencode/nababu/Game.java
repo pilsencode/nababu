@@ -35,6 +35,8 @@ public class Game implements Drawable, Observer {
     private int fieldSizeX;
     private int fieldSizeY;
 
+    private boolean server = false;
+
     /**
      * Private constructor to defeat instantiation of singleton.
      */
@@ -78,6 +80,13 @@ public class Game implements Drawable, Observer {
             }
         }
         return null;
+    }
+
+    public boolean isServer() {
+        return server;
+    }
+    public void setServer(boolean server) {
+        this.server = server;
     }
 
     public void moveMe(int incX, int incY) {

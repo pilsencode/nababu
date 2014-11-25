@@ -51,6 +51,8 @@ public class JoinGameActivity extends AbstractBTActivity {
         ListView newListView = (ListView) findViewById(R.id.list_of_new_devices);
         newListView.setAdapter(newDevicesArrayAdapter);
         newListView.setOnItemClickListener(deviceListClickListener);
+
+        Game.getInstance().setServer(false);
     }
 
     @Override
