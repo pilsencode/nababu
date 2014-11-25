@@ -1,9 +1,11 @@
 package org.pilsencode.nababu;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.util.UUID;
@@ -79,6 +81,26 @@ public abstract class AbstractBTActivity extends Activity {
      */
     protected String getUsername() {
         return username;
+    }
+
+    /**
+     * Shows message box with information about a caught exception.
+     * @param action context description
+     * @param e caught exception
+     */
+    protected void handleCaughtException(String action, Exception e) {
+        if (Game.D) { Log.e(Game.TAG, action + ": " + e.getMessage(), e); }
+
+        final AlertDialog.Builder messageBox = new AlertDialog.Builder(this);
+        messageBox.setTitle("Error");
+        messageBox.setMessage(action + "\n" + e.getClass().getSimpleName() + "\n" + e.getMessage());
+        messageBox.setCancelable(false);
+        messageBox.setNeutralButton("OK", null);
+        runOnUiThread(new Runnable() {
+            public void run() {
+                messageBox.show();
+            }
+        });
     }
 
     /**

@@ -42,13 +42,6 @@ public class JoinGameActivity extends AbstractBTActivity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.layout_join_game);
 
-        if (getBluetoothAdapter().isEnabled()) {
-            btPrepared4Client();
-        } else { // enable BT
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT_CODE);
-        }
-
         pairedDevicesArrayAdapter = new ArrayAdapter<String>(this, R.layout.device_in_list);
         ListView pairedListView = (ListView) findViewById(R.id.list_of_paired_devices);
         pairedListView.setAdapter(pairedDevicesArrayAdapter);
@@ -58,25 +51,31 @@ public class JoinGameActivity extends AbstractBTActivity {
         ListView newListView = (ListView) findViewById(R.id.list_of_new_devices);
         newListView.setAdapter(newDevicesArrayAdapter);
         newListView.setOnItemClickListener(deviceListClickListener);
-
-        // get a set of currently paired devices
-        Set<BluetoothDevice> pairedDevices = getBluetoothAdapter().getBondedDevices();
-        // If there are paired devices, add each one to the ArrayAdapter
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-            }
-        } else {
-            String noDevices = getResources().getText(R.string.none_devices_paired).toString();
-            pairedDevicesArrayAdapter.add(noDevices);
-        }
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStart() {
+        // Called just before the activity becomes visible to the user.
+        super.onStart();
+showToast("ON_START");
+
+        // reset the game, maybe coming back from PlayingField
+        Game.getInstance().reset();
+        // and stop listening thread of communicator
         if (null != clientThread) {
             clientThread.finish();
+            clientThread = null;
+        }
+
+        // clear listed devices
+        pairedDevicesArrayAdapter.clear();
+        newDevicesArrayAdapter.clear();
+
+        if (getBluetoothAdapter().isEnabled()) {
+            btPrepared4Client();
+        } else { // enable BT
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT_CODE);
         }
     }
 
@@ -89,6 +88,18 @@ public class JoinGameActivity extends AbstractBTActivity {
     protected void btPrepared4Client() {
         Button scan = (Button) findViewById(R.id.button_scan);
         scan.setEnabled(true);
+
+        // get list of currently paired devices
+        Set<BluetoothDevice> pairedDevices = getBluetoothAdapter().getBondedDevices();
+        // If there are paired devices, add each one to the ArrayAdapter
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+            }
+        } else {
+            String noDevices = getResources().getText(R.string.none_devices_paired).toString();
+            pairedDevicesArrayAdapter.add(noDevices);
+        }
     }
 
     /**
@@ -145,7 +156,7 @@ public class JoinGameActivity extends AbstractBTActivity {
             // cancel discovery because it's costly and we're about to connect
             getBluetoothAdapter().cancelDiscovery();
 
-            // get the device MAC address, which is the last second line
+            // get the device MAC address, which is the second line
             String info = ((TextView) v).getText().toString();
             String address = info.split("\\n")[1];
 
@@ -161,6 +172,7 @@ public class JoinGameActivity extends AbstractBTActivity {
         private BluetoothSocket socket;
         private BufferedReader reader;
         private PrintWriter writer;
+        private Player player;
 
         public ClientThread(String address) {
             // get a BluetoothSocket to connect with the given BluetoothDevice
@@ -185,6 +197,8 @@ showToast("ERR: " + e.toString());
                     socket.connect();
                     reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     writer = new PrintWriter(socket.getOutputStream());
+                    player = new Player(getUsername());
+                    Game.getInstance().setMe(player);
                 } catch (IOException e) {
                     Log.e("nababu", "failed to connect", e);
                     finish();
@@ -198,7 +212,7 @@ showToast("ERR: " + e.toString());
             // and wait reading forever (writing comes from another threads)
             while (null != socket) {
                 try {
-                    String packet = new String(reader.readLine());
+                    String packet = reader.readLine();
 showToast("RESP: " + packet);
                     // Send the obtained bytes to the UI activity
 //                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
@@ -243,6 +257,11 @@ showToast("AAAAAAAAAA: " + (System.currentTimeMillis() - start));
                 Log.e("nababu", "failed to close socket", e);
             }
             socket = null;
+        }
+
+        @Override
+        public Player getPlayer() {
+            return player;
         }
 
     }

@@ -3,9 +3,9 @@ package org.pilsencode.nababu;
 import android.graphics.Color;
 import android.graphics.Point;
 
-import java.security.InvalidParameterException;
-
 /**
+ * This class represents a player of the game.
+ *
  * Created by veny on 11.11.14.
  */
 public class Player {
@@ -16,23 +16,20 @@ public class Player {
 
     private Point coordinates;
 
-    private int color = Color.rgb(0, 0, 255);
+    private int color;
 
     private boolean baba = false;
 
-    private Communicator communicator;
-
-    public Player(String name) {
-        if (null == name || 0 == name.trim().length()) {
-            throw new InvalidParameterException("name must be provided");
-            // TODO [veny] exception handling in android?
-        }
-        this.name = name;
-        this.color = getRandomColor();
-
+    public Player() {
+        color = getRandomColor();
         coordinates = new Point();
         coordinates.x = radius;
         coordinates.y = radius;
+    }
+
+    public Player(String name) {
+        this();
+        this.name = name;
     }
 
     public Player(String name, int color) {
@@ -59,11 +56,13 @@ public class Player {
     public String getName() {
         return name;
     }
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public boolean isBaba() {
         return baba;
     }
-
     public void setBaba(boolean baba) {
         this.baba = baba;
     }
@@ -72,21 +71,16 @@ public class Player {
         return name.substring(0, 1).toUpperCase();
     }
 
-    public Communicator getCommunicator() {
-        return communicator;
-    }
-    public void setCommunicator(Communicator communicator) {
-        this.communicator = communicator;
-    }
-
-    // ----------------------------------------------------------- Object Stuff
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
+    /**
+     * An user is 'activated' when he call JOIN action on server.
+     * After that the sent username is set.
+     */
+    public boolean isActivated() {
+        return (null != name);
     }
 
     private int getRandomColor() {
         return Color.rgb(0, (int)(Math.random()*256), (int)(Math.random()*256));
     }
+
 }

@@ -26,6 +26,7 @@ public class HostGameActivity extends AbstractBTActivity {
 
     private ServerThread serverThread;
     private ArrayAdapter<String> playersListAdapter;
+    private List<Communicator> communicators = new ArrayList<Communicator>();
 
 
     @Override
@@ -60,6 +61,11 @@ showToast("ON_START");
 
         // reset the game, maybe coming back from PlayingField
         Game.getInstance().reset();
+        // and stop all listening threads
+        for (Communicator c : communicators) {
+            c.finish();
+        }
+        communicators.clear();
 
         if (getBluetoothAdapter().isEnabled()) {
             btPrepared4Server();
@@ -93,7 +99,7 @@ showToast("ON_STOP");
         serverThread = new ServerThread();
         serverThread.start();
 
-        Game.getInstance().setMe(getUsername());
+        Game.getInstance().setMe(new Player(getUsername()));
     }
 
     @Override
@@ -114,16 +120,14 @@ showToast("ON_STOP");
     private class ServerThread extends Thread {
 
         private BluetoothServerSocket serverSocket;
-        private List<ConnectedClientThread> clientThreads = new ArrayList<ConnectedClientThread>();
 
         public ServerThread() {
             try {
                 serverSocket = getBluetoothAdapter().listenUsingRfcommWithServiceRecord(
                         AbstractBTActivity.BT_APP_NAME, AbstractBTActivity.BT_APP_UUID);
             } catch (IOException e) {
-                Log.e("nababu", "server socked failed", e);
                 cancel();
-showToast("ERR: " + e.toString());
+                handleCaughtException("server socked failed", e);
             }
         }
 
@@ -135,13 +139,13 @@ showToast("ERR: " + e.toString());
                 try {
                     socket = serverSocket.accept();
                 } catch (IOException e) {
-                    // TODO [veny] exception handling
-                    break;
+                    handleCaughtException("failed to accept socket", e);
+                    socket = null;
                 }
                 // if a connection was accepted
                 if (null != socket) {
                     ConnectedClientThread th = new ConnectedClientThread(socket);
-                    clientThreads.add(th);
+                    communicators.add(th);
                     th.start();
                     socket = null;
                 }
@@ -158,10 +162,6 @@ showToast("ERR: " + e.toString());
                 Log.e("nababu", "failed to close server socket", e);
             }
             serverSocket = null;
-            for (ConnectedClientThread clientThread : clientThreads) {
-                clientThread.finish();
-            }
-            clientThreads.clear();
         }
 
     }
@@ -173,18 +173,19 @@ showToast("ERR: " + e.toString());
         private BluetoothSocket socket;
         private BufferedReader reader;
         private PrintWriter writer;
+        private Player player;
 
         public ConnectedClientThread(BluetoothSocket socket) {
             if (null == socket) { throw new NullPointerException("socket cannot be null"); }
             this.socket = socket;
+            player = new Player();
 
             try {
                 reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 writer = new PrintWriter(socket.getOutputStream());
             } catch (IOException e) {
-                Log.e("nababu", "failed to initialize reader/writer", e);
                 finish();
-showToast("ERR: " + e.toString());
+                handleCaughtException("failed to initialize reader/writer", e);
             }
         }
 
@@ -199,8 +200,7 @@ showToast("ERR: " + e.toString());
 
                     final String parts[] = packet.split(":");
                     final String username = parts[1];
-                    Player player = new Player(username);
-                    player.setCommunicator(ConnectedClientThread.this);
+                    player.setName(username);
                     Game.getInstance().addPlayer(player);
                     runOnUiThread(new Runnable() {
                         public void run() {
@@ -214,9 +214,8 @@ sendMessage("OK");
 //                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
 //                        .sendToTarget();
                 } catch (Exception e) {
-                    Log.e("nababu", "failed to read from socket", e);
                     finish();
-showToast("ERR 12: " + e.toString());
+                    handleCaughtException("failed to read from socket", e);
                 }
             }
         }
@@ -249,6 +248,11 @@ showToast("ERR 12: " + e.toString());
                 Log.e("nababu", "failed to close socket", e);
             }
             socket = null;
+        }
+
+        @Override
+        public Player getPlayer() {
+            return player;
         }
 
     }

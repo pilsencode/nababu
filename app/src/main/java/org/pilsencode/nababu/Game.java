@@ -6,16 +6,22 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
 
 /**
+ * This class represents game and all associated players.
+ *
  * Created by veny on 11.11.14.
  */
 public class Game implements Drawable, Observer {
+
+    // debugging
+    public static final boolean D = true;
+    public static final String TAG = "nababu";
 
     private static Game instance = null;
 
@@ -24,7 +30,7 @@ public class Game implements Drawable, Observer {
     public static final int BG_COLOR = Color.GRAY;
 
     private Player me;
-    private Map<String, Player> players = new HashMap<String, Player>();
+    private List<Player> players = new ArrayList<Player>();
 
     private int fieldSizeX;
     private int fieldSizeY;
@@ -50,9 +56,8 @@ public class Game implements Drawable, Observer {
         fieldSizeY = y;
     }
 
-    public void setMe(String name) {
-        me = new Player(name);
-
+    public void setMe(Player player) {
+        me = player;
         // I'm baba
         me.setBaba(true);
     }
@@ -63,9 +68,19 @@ public class Game implements Drawable, Observer {
     }
 
     public void addPlayer(Player player) {
-        if (!players.containsKey(player.getName())) {
-            players.put(player.getName(), player);
+        if (null == player.getName()) {
+            throw new NullPointerException("username cannot be null");
         }
+        players.add(player);
+    }
+
+    public Player getPlayer(String name) {
+        for (Player p : players) {
+            if (name.equals(p.getName())) {
+                return p;
+            }
+        }
+        return null;
     }
 
     public void moveMe(int incX, int incY) {
@@ -88,15 +103,7 @@ public class Game implements Drawable, Observer {
     }
 
     public void reset() {
-        if (null != me && null != me.getCommunicator()) {
-            me.getCommunicator().finish();
-        }
         me = null;
-        for (Player player : players.values()) {
-            if (null != player && null != player.getCommunicator()) {
-                player.getCommunicator().finish();
-            }
-        }
         players.clear();
     }
 
@@ -128,28 +135,23 @@ public class Game implements Drawable, Observer {
     }
 
     /**
-     * Render all players from the set
-     *
-     * @param canvas
-     * @param rectSize
-     * @param top
+     * Renders all players.
      */
     private void drawAllPlayers(Canvas canvas, int rectSize, int top) {
         drawPlayer(canvas, me, rectSize, top);
-        for (Player player : players.values()) {
+        for (Player player : players) {
             drawPlayer(canvas, player, rectSize, top);
         }
     }
 
     /**
-     * Draw one player
-     *
-     * @param canvas
-     * @param player
-     * @param rectSize
-     * @param top
+     * Draws one player.
      */
     private void drawPlayer(Canvas canvas, Player player, int rectSize, int top) {
+        if (!player.isActivated()) {
+            return;
+        }
+
         // draw player
         paint.setColor(player.getColor());
         canvas.drawCircle(
@@ -177,11 +179,12 @@ public class Game implements Drawable, Observer {
 
     // temporary code till BT connection is ready - test observer
     public void moveAI() {
-        if (!players.containsKey("AI")) {
+        Player ai = getPlayer("AI");
+        if (null == ai) {
             return;
         }
 
-        Point point = this.players.get("AI").getCoordinates();
+        Point point = ai.getCoordinates();
 
         // create player with same nama to test update method
         Player updated = new Player("AI");
@@ -195,9 +198,10 @@ public class Game implements Drawable, Observer {
         // Currently I expect that updated player will come as paramater - TODO consult with vasy
         Player updatedPlayer = (Player) argument;
 
-        // find player and update his coorinates
-        if (this.players.containsKey(updatedPlayer.getName())) {
-            this.players.get(updatedPlayer.getName()).setCoordinates(updatedPlayer.getCoordinates());
-        }
+//        // find player and update his coordinates
+//        if (this.players.containsKey(updatedPlayer.getName())) {
+//            this.players.get(updatedPlayer.getName()).setCoordinates(updatedPlayer.getCoordinates());
+//        }
     }
+
 }
