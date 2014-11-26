@@ -7,8 +7,8 @@ package org.pilsencode.nababu;
  */
 public enum ActionEnum {
 
-    OK,
-    JOIN, // (username)
+    JOIN,       // (username) - request for join the game
+    JOINED,     // (username) - info about newly joined player
     MOVE, // (username, incX, incY)
     START,
     QUIT // (username)

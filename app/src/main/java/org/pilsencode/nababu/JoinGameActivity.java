@@ -28,7 +28,7 @@ import java.util.Set;
  *
  * Created by veny on 20.11.14.
  */
-public class JoinGameActivity extends AbstractBTActivity {
+public class JoinGameActivity extends AbstractBTActivity implements Game.GameEventObserver {
 
     private ClientThread clientThread;
     private ArrayAdapter<String> pairedDevicesArrayAdapter;
@@ -63,6 +63,11 @@ showToast("ON_START");
 
         // reset the game, maybe coming back from PlayingField
         Game.getInstance().reset();
+        // register itself as game observer
+        Game.getInstance().registerEventObserver(this);
+        // register itself as game observer
+        Game.getInstance().registerEventObserver(this);
+
         // and stop listening thread of communicator
 //        if (null != clientThread) {
 //            clientThread.finish();
@@ -79,6 +84,19 @@ showToast("ON_START");
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT_CODE);
         }
+    }
+
+    @Override
+    protected void onStop() {
+        // Called when the activity is no longer visible to the user.
+        // This may happen because it is being destroyed,
+        // or because another activity (either an existing one or a new one)
+        // has been resumed and is covering it.
+        super.onStop();
+showToast("ON_STOP");
+
+        // remove itself as game observer
+        Game.getInstance().removeEventObserver();
     }
 
     @Override
@@ -167,6 +185,17 @@ showToast("ON_START");
         }
     };
 
+    // ------------------------------------------- Game.GameEventObserver Stuff
+
+    @Override
+    public void onGameEvent(ActionEnum action, String... params) {
+        switch (action) {
+            case JOINED:
+                //playersListAdapter.add(params[0]);
+                break;
+        }
+    }
+
     // ------------------------------------------------------------------------
 
     private class ClientThread extends Thread implements Communicator {
@@ -230,10 +259,8 @@ showToast("ERR: " + e.toString());
 
         @Override
         public void sendMessage(String packet) {
-long start = System.currentTimeMillis();
-            writer.println(packet + "\n");
+            writer.println(packet);
             writer.flush();
-showToast("AAAAAAAAAA: " + (System.currentTimeMillis() - start));
 
 //            try {
 //                packet += "\n";

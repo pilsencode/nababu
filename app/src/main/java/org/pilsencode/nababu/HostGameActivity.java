@@ -20,7 +20,7 @@ import java.io.PrintWriter;
  *
  * Created by veny on 19.11.14.
  */
-public class HostGameActivity extends AbstractBTActivity {
+public class HostGameActivity extends AbstractBTActivity implements Game.GameEventObserver {
 
     private ServerThread serverThread;
     private ArrayAdapter<String> playersListAdapter;
@@ -61,6 +61,13 @@ showToast("ON_START");
 
         // reset the game, maybe coming back from PlayingField
         Game.getInstance().reset();
+        // register itself as game observer
+        Game.getInstance().registerEventObserver(this);
+
+        // clear joined players
+        playersListAdapter.clear();
+        // and add myself
+        playersListAdapter.add(getUsername() + " [me]");
 
         if (getBluetoothAdapter().isEnabled()) {
             btPrepared4Server();
@@ -79,6 +86,9 @@ showToast("ON_START");
         // has been resumed and is covering it.
         super.onStop();
 showToast("ON_STOP");
+
+        // remove itself as game observer
+        Game.getInstance().removeEventObserver();
 
         // stop listening for incoming connection
         if (null != serverThread) {
@@ -109,6 +119,18 @@ showToast("ON_STOP");
         Intent intent = new Intent(this, PlayingFieldActivity.class);
         startActivity(intent);
     }
+
+    // ------------------------------------------- Game.GameEventObserver Stuff
+
+    @Override
+    public void onGameEvent(ActionEnum action, String... params) {
+        switch (action) {
+            case JOIN:
+                playersListAdapter.add(params[0]);
+                break;
+        }
+    }
+
 
     // ------------------------------------------------------------------------
 
@@ -187,11 +209,12 @@ showToast("ON_STOP");
         public void run() {
             Player player = new Player();
             player.setCommunicator(this);
+            Game.getInstance().addPlayer(player);
 
             byte[] buffer = new byte[1024];
             while (null != socket) {
                 try {
-//                    String packet = new String(reader.readLine());
+//                    String packet = reader.readLine();
 
                         int len = socket.getInputStream().read(buffer);
                         String packet = new String(buffer, 0, len - 1, "UTF-8");
@@ -199,13 +222,9 @@ showToast("ON_STOP");
                     final String parts[] = packet.split(":");
                     final String username = parts[1];
                     player.setName(username);
-                    Game.getInstance().addPlayer(player);
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            playersListAdapter.add(username);
-                        }
-                    });
-sendMessage("OK");
+                    Game.getInstance().getHandler().obtainMessage(ActionEnum.JOIN.ordinal(), username).sendToTarget();
+                    // response with JOINED packet
+                    sendMessage(encodePacket(ActionEnum.JOINED, username));
 
                     // Send the obtained bytes to the UI activity
 //                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)

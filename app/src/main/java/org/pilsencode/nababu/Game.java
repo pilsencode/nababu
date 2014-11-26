@@ -5,6 +5,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,6 +108,12 @@ public class Game implements Drawable, Observer {
         }
         if (coordinates.y > (innerSize - me.getRadius())) {
             coordinates.y = innerSize - me.getRadius();
+        }
+
+        // XXX
+        if (isServer() && players.size() > 1) {
+            Player p1 = players.get(0);
+            p1.getCommunicator().sendMessage(p1.getName() + ":" + incX + ":" + incY);
         }
     }
 
@@ -214,6 +223,50 @@ public class Game implements Drawable, Observer {
 //        if (this.players.containsKey(updatedPlayer.getName())) {
 //            this.players.get(updatedPlayer.getName()).setCoordinates(updatedPlayer.getCoordinates());
 //        }
+    }
+
+    // --------------------------------------- Communicating with the UI Thread
+
+    public interface GameEventObserver {
+        void onGameEvent(ActionEnum action, String... params);
+    }
+
+    private GameEventObserver observer;
+
+    public void registerEventObserver(GameEventObserver observer) {
+        this.observer = observer;
+    }
+
+    public void removeEventObserver() {
+        observer = null;
+    }
+
+    public void triggerEvent(ActionEnum action, String... params) {
+        if (null != observer) {
+            observer.onGameEvent(action, params);
+        }
+    }
+
+    private Handler handler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            ActionEnum action = ActionEnum.values()[msg.what];
+            switch (action) {
+                case JOIN:
+                    triggerEvent(action, msg.obj.toString());
+                    break;
+                case JOINED:
+                    triggerEvent(action, msg.obj.toString());
+                    break;
+                default:
+                    // pass along other messages from the UI
+                    super.handleMessage(msg);
+            }
+        }
+    };
+
+    public Handler getHandler() {
+        return handler;
     }
 
 }
