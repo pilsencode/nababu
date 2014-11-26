@@ -211,13 +211,9 @@ showToast("ON_STOP");
             player.setCommunicator(this);
             Game.getInstance().addPlayer(player);
 
-            byte[] buffer = new byte[1024];
             while (null != socket) {
                 try {
-//                    String packet = reader.readLine();
-
-                        int len = socket.getInputStream().read(buffer);
-                        String packet = new String(buffer, 0, len - 1, "UTF-8");
+                    String packet = reader.readLine();
 
                     final String parts[] = packet.split(":");
                     final String username = parts[1];
@@ -225,10 +221,6 @@ showToast("ON_STOP");
                     Game.getInstance().getHandler().obtainMessage(ActionEnum.JOIN.ordinal(), username).sendToTarget();
                     // response with JOINED packet
                     sendMessage(encodePacket(ActionEnum.JOINED, username));
-
-                    // Send the obtained bytes to the UI activity
-//                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
-//                        .sendToTarget();
                 } catch (Exception e) {
                     finish();
                     handleCaughtException("failed to read from socket", e);
@@ -240,14 +232,6 @@ showToast("ON_STOP");
         public void sendMessage(String packet) {
             writer.println(packet);
             writer.flush();
-//
-//            try {
-//                socket.getOutputStream().write(packet.getBytes());
-//            } catch (IOException e) {
-//                Log.e("nababu", "failed to send data", e);
-//                cancel();
-//showToast("ERR: " + e.toString());
-//            }
         }
 
         @Override

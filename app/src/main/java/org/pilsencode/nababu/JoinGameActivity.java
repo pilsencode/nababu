@@ -261,17 +261,6 @@ showToast("ERR: " + e.toString());
         public void sendMessage(String packet) {
             writer.println(packet);
             writer.flush();
-
-//            try {
-//                packet += "\n";
-//                socket.getOutputStream().write(packet.getBytes());
-////                socket.getOutputStream().flush();
-//showToast("AAAAAAAAAAAAAAAAAAAAAAAA");
-//            } catch (IOException e) {
-//                Log.e("nababu", "failed to send data", e);
-//                cancel();
-//showToast("ERR: " + e.toString());
-//            }
         }
 
         @Override
