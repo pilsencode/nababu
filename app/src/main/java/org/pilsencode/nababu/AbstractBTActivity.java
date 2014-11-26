@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.UUID;
 
 
@@ -175,7 +176,7 @@ showToast("RESP: " + packet);
 
                     final String parts[] = packet.split(":");
                     final ActionEnum action = ActionEnum.valueOf(parts[0]);
-                    Game.GameEvent event = new Game.GameEvent(action, player, parts);
+                    Game.GameEvent event = new Game.GameEvent(action, player, Arrays.copyOfRange(parts, 1, parts.length));
                     if (action == ActionEnum.JOIN) {
                         player.setName(parts[1]);
                     }

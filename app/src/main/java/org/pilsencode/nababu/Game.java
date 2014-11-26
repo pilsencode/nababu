@@ -76,6 +76,10 @@ public class Game implements Drawable, Observer {
         players.add(player);
     }
 
+    public List<Player> getPlayers() {
+        return players;
+    }
+
     public Player getPlayer(String name) {
         for (Player p : players) {
             if (name.equals(p.getName())) {
@@ -110,10 +114,9 @@ public class Game implements Drawable, Observer {
             coordinates.y = innerSize - me.getRadius();
         }
 
-        // XXX
-        if (isServer() && players.size() > 1) {
-            Player p1 = players.get(0);
-            p1.getCommunicator().sendMessage(p1.getName() + ":" + incX + ":" + incY);
+        // XXX only for joined client
+        if (!isServer()) {
+            me.getCommunicator().sendMessage(ActionEnum.MOVE + ":" + me.getName() + ":" + incX + ":" + incY);
         }
     }
 

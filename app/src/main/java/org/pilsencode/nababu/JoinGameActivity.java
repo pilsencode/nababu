@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.Set;
@@ -188,7 +189,11 @@ showToast("ON_STOP");
     public void onGameEvent(Game.GameEvent event) {
         switch (event.action) {
             case JOINED:
-                //playersListAdapter.add(params[0]);
+                Toast.makeText(this, "Player joined: " + event.params[0], Toast.LENGTH_LONG).show();
+                break;
+            case START:
+                Intent intent = new Intent(this, PlayingFieldActivity.class);
+                startActivity(intent);
                 break;
         }
     }

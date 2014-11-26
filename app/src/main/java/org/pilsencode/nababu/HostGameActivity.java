@@ -85,7 +85,7 @@ showToast("ON_START");
 showToast("ON_STOP");
 
         // remove itself as game observer
-        Game.getInstance().removeEventObserver();
+//        Game.getInstance().removeEventObserver();
 
         // stop listening for incoming connection
         if (null != acceptThread && acceptThread.isAlive()) {
@@ -115,6 +115,12 @@ showToast("ON_STOP");
     public void startGame(View view) {
         Intent intent = new Intent(this, PlayingFieldActivity.class);
         startActivity(intent);
+
+        // TODO [veny] XXX send to all joined players
+        if (Game.getInstance().isServer() && Game.getInstance().getPlayers().size() > 0) {
+            Player p1 = Game.getInstance().getPlayers().get(0);
+            p1.getCommunicator().sendMessage(ActionEnum.START + ":DELETE_ME");
+        }
     }
 
     // ------------------------------------------- Game.GameEventObserver Stuff
@@ -123,7 +129,7 @@ showToast("ON_STOP");
     public void onGameEvent(Game.GameEvent event) {
         switch (event.action) {
             case JOIN:
-                String name = event.params[1];
+                String name = event.params[0];
                 playersListAdapter.add(name);
                 // response with JOINED packet
                 event.player.getCommunicator().sendMessage(encodePacket(ActionEnum.JOINED, name));

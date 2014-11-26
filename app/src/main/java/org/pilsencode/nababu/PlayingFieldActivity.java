@@ -3,6 +3,7 @@ package org.pilsencode.nababu;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,7 +17,7 @@ import java.util.TimerTask;
 /**
  * Created by veny on 5.11.14.
  */
-public class PlayingFieldActivity extends Activity implements SensorEventListener {
+public class PlayingFieldActivity extends Activity implements SensorEventListener, Game.GameEventObserver {
 
     private PlayingFieldView mView;
     private SensorManager mSensorManager;
@@ -76,6 +77,39 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         // unregister the sensor to save battery
         mSensorManager.unregisterListener(this);
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // register itself as game observer
+        Game.getInstance().registerEventObserver(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // remove itself as game observer
+        Game.getInstance().removeEventObserver();
+    }
+
+    // ------------------------------------------- Game.GameEventObserver Stuff
+
+    @Override
+    public void onGameEvent(Game.GameEvent event) {
+        switch (event.action) {
+            case MOVE:
+                String name = event.params[0];
+                int incX = Integer.valueOf(event.params[1]);
+                int incY = Integer.valueOf(event.params[2]);
+                Player p = Game.getInstance().getPlayer(name);
+                Point coordinates = p.getCoordinates();
+                coordinates.x += incX;
+                coordinates.y += incY;
+                mView.invalidate();
+                break;
+        }
+    }
+
 
     @Override
     public void onSensorChanged(SensorEvent e) {
