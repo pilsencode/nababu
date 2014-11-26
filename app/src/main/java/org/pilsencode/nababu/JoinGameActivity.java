@@ -17,10 +17,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.Set;
 
 /**
@@ -30,7 +27,7 @@ import java.util.Set;
  */
 public class JoinGameActivity extends AbstractBTActivity implements Game.GameEventObserver {
 
-    private ClientThread clientThread;
+    private ConnectThread connectThread;
     private ArrayAdapter<String> pairedDevicesArrayAdapter;
     private ArrayAdapter<String> newDevicesArrayAdapter;
 
@@ -68,12 +65,6 @@ showToast("ON_START");
         // register itself as game observer
         Game.getInstance().registerEventObserver(this);
 
-        // and stop listening thread of communicator
-//        if (null != clientThread) {
-//            clientThread.finish();
-//            clientThread = null;
-//        }
-
         // clear listed devices
         pairedDevicesArrayAdapter.clear();
         newDevicesArrayAdapter.clear();
@@ -97,6 +88,12 @@ showToast("ON_STOP");
 
         // remove itself as game observer
         Game.getInstance().removeEventObserver();
+
+        // stop connecting thread
+        if (null != connectThread && connectThread.isAlive()) {
+            connectThread.finish();
+            connectThread = null;
+        }
     }
 
     @Override
@@ -180,16 +177,16 @@ showToast("ON_STOP");
             String info = ((TextView) v).getText().toString();
             String address = info.split("\\n")[1];
 
-            clientThread = new ClientThread(address);
-            clientThread.start();
+            connectThread = new ConnectThread(address);
+            connectThread.start();
         }
     };
 
     // ------------------------------------------- Game.GameEventObserver Stuff
 
     @Override
-    public void onGameEvent(ActionEnum action, String... params) {
-        switch (action) {
+    public void onGameEvent(Game.GameEvent event) {
+        switch (event.action) {
             case JOINED:
                 //playersListAdapter.add(params[0]);
                 break;
@@ -198,13 +195,16 @@ showToast("ON_STOP");
 
     // ------------------------------------------------------------------------
 
-    private class ClientThread extends Thread implements Communicator {
+    /**
+     * This thread runs while attempting to make an outgoing connection
+     * with a device. It runs straight through; the connection either
+     * succeeds or fails.
+     */
+    private class ConnectThread extends Thread {
 
         private BluetoothSocket socket;
-        private BufferedReader reader;
-        private PrintWriter writer;
 
-        public ClientThread(String address) {
+        public ConnectThread(String address) {
             // get a BluetoothSocket to connect with the given BluetoothDevice
             try {
                 BluetoothDevice device = getBluetoothAdapter().getRemoteDevice(address);
@@ -219,19 +219,12 @@ showToast("ERR: " + e.toString());
 
         @Override
         public void run() {
-            Player player = new Player(getUsername());
-
             if (null != socket) { // unless constructor failed
                 // cancel discovery because it will slow down the connection
                 getBluetoothAdapter().cancelDiscovery();
 
                 try {
                     socket.connect();
-                    reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    writer = new PrintWriter(socket.getOutputStream());
-
-                    player.setCommunicator(this);
-                    Game.getInstance().setMe(player);
                 } catch (IOException e) {
                     Log.e("nababu", "failed to connect", e);
                     finish();
@@ -239,38 +232,13 @@ showToast("ERR: " + e.toString());
                 }
             }
 
-            // send username to server
-            sendMessage(encodePacket(ActionEnum.JOIN, getUsername()));
-
-            // and wait reading forever (writing comes from another threads)
-            while (null != socket) {
-                try {
-                    String packet = reader.readLine();
-showToast("RESP: " + packet);
-                    // Send the obtained bytes to the UI activity
-//                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
-                } catch (IOException e) {
-                    Log.e("nababu", "failed to read from socket", e);
-                    finish();
-showToast("ERR: " + e.toString());
-                }
+            if (null != socket) {
+                ConnectedThread th = new ConnectedThread(socket);
+                th.start();
             }
         }
 
-        @Override
-        public void sendMessage(String packet) {
-            writer.println(packet);
-            writer.flush();
-        }
-
-        @Override
         public void finish() {
-            try {
-                if (null != reader) { reader.close(); }
-                if (null != writer) { writer.close(); }
-            } catch (IOException e) {
-                Log.e("nababu", "failed to close reader/writer", e);
-            }
             try {
                 if (null != socket) { socket.close(); }
             } catch (IOException e) {

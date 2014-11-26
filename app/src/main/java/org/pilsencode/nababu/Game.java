@@ -227,8 +227,19 @@ public class Game implements Drawable, Observer {
 
     // --------------------------------------- Communicating with the UI Thread
 
+    public static class GameEvent {
+        public final ActionEnum action;
+        public final Player player;
+        public final String[] params;
+        public GameEvent(ActionEnum a, Player p, String[] ps) {
+            action = a;
+            player = p;
+            params = ps;
+        }
+    }
+
     public interface GameEventObserver {
-        void onGameEvent(ActionEnum action, String... params);
+        void onGameEvent(GameEvent event);
     }
 
     private GameEventObserver observer;
@@ -241,26 +252,12 @@ public class Game implements Drawable, Observer {
         observer = null;
     }
 
-    public void triggerEvent(ActionEnum action, String... params) {
-        if (null != observer) {
-            observer.onGameEvent(action, params);
-        }
-    }
-
     private Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
-            ActionEnum action = ActionEnum.values()[msg.what];
-            switch (action) {
-                case JOIN:
-                    triggerEvent(action, msg.obj.toString());
-                    break;
-                case JOINED:
-                    triggerEvent(action, msg.obj.toString());
-                    break;
-                default:
-                    // pass along other messages from the UI
-                    super.handleMessage(msg);
+            GameEvent event = (GameEvent) msg.obj;
+            if (null != observer) {
+                observer.onGameEvent(event);
             }
         }
     };

@@ -3,11 +3,16 @@ package org.pilsencode.nababu;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.UUID;
 
 
@@ -121,6 +126,89 @@ public abstract class AbstractBTActivity extends Activity {
             rslt.append(':').append(arg.toString());
         }
         return rslt.toString();
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * This thread runs during a connection with a remote device.
+     * It handles all incoming and outgoing transmissions.
+     */
+    protected class ConnectedThread extends Thread implements Communicator {
+
+        private BluetoothSocket socket;
+        private BufferedReader reader;
+        private PrintWriter writer;
+
+        public ConnectedThread(BluetoothSocket socket) {
+            if (null == socket) { throw new NullPointerException("socket cannot be null"); }
+            this.socket = socket;
+
+            try {
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                writer = new PrintWriter(socket.getOutputStream());
+                if (Game.D) { Log.d(Game.TAG, "created ConnectedThread"); }
+            } catch (IOException e) {
+                finish();
+                handleCaughtException("failed to initialize reader/writer", e);
+            }
+        }
+
+        public void run() {
+            final Player player = new Player();
+            player.setCommunicator(this);
+
+            if (Game.getInstance().isServer()) {
+                // we do not know the name now, wait for JOIN packet
+                Game.getInstance().addPlayer(player);
+            } else {
+                player.setName(getUsername());
+                Game.getInstance().setMe(player);
+                // send username to server
+                sendMessage(encodePacket(ActionEnum.JOIN, getUsername()));
+            }
+
+            while (null != socket) {
+                try {
+                    String packet = reader.readLine();
+showToast("RESP: " + packet);
+
+                    final String parts[] = packet.split(":");
+                    final ActionEnum action = ActionEnum.valueOf(parts[0]);
+                    Game.GameEvent event = new Game.GameEvent(action, player, parts);
+                    if (action == ActionEnum.JOIN) {
+                        player.setName(parts[1]);
+                    }
+                    Game.getInstance().getHandler().obtainMessage(action.ordinal(), event).sendToTarget();
+                } catch (Exception e) {
+                    finish();
+                    handleCaughtException("failed to read from socket", e);
+                }
+            }
+        }
+
+        @Override
+        public void sendMessage(String packet) {
+            writer.println(packet);
+            writer.flush();
+        }
+
+        @Override
+        public void finish() {
+            try {
+                if (null != reader) { reader.close(); }
+                if (null != writer) { writer.close(); }
+            } catch (IOException e) {
+                Log.e("nababu", "failed to close reader/writer", e);
+            }
+            try {
+                if (null != socket) { socket.close(); }
+            } catch (IOException e) {
+                Log.e("nababu", "failed to close socket", e);
+            }
+            socket = null;
+        }
+
     }
 
 }

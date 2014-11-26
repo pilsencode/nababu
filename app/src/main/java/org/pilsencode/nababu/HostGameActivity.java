@@ -10,10 +10,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 
 /**
  * Activity representing step of hosting the game as a server.
@@ -22,7 +19,7 @@ import java.io.PrintWriter;
  */
 public class HostGameActivity extends AbstractBTActivity implements Game.GameEventObserver {
 
-    private ServerThread serverThread;
+    private AcceptThread acceptThread;
     private ArrayAdapter<String> playersListAdapter;
 
 
@@ -91,9 +88,9 @@ showToast("ON_STOP");
         Game.getInstance().removeEventObserver();
 
         // stop listening for incoming connection
-        if (null != serverThread) {
-            serverThread.cancel();
-            serverThread = null;
+        if (null != acceptThread && acceptThread.isAlive()) {
+            acceptThread.cancel();
+            acceptThread = null;
         }
     }
 
@@ -101,8 +98,8 @@ showToast("ON_STOP");
     @Override
     protected void btPrepared4Server() {
         // start listening for incoming connections
-        serverThread = new ServerThread();
-        serverThread.start();
+        acceptThread = new AcceptThread();
+        acceptThread.start();
 
         Game.getInstance().setMe(new Player(getUsername()));
     }
@@ -123,10 +120,13 @@ showToast("ON_STOP");
     // ------------------------------------------- Game.GameEventObserver Stuff
 
     @Override
-    public void onGameEvent(ActionEnum action, String... params) {
-        switch (action) {
+    public void onGameEvent(Game.GameEvent event) {
+        switch (event.action) {
             case JOIN:
-                playersListAdapter.add(params[0]);
+                String name = event.params[1];
+                playersListAdapter.add(name);
+                // response with JOINED packet
+                event.player.getCommunicator().sendMessage(encodePacket(ActionEnum.JOINED, name));
                 break;
         }
     }
@@ -134,12 +134,16 @@ showToast("ON_STOP");
 
     // ------------------------------------------------------------------------
 
-    private class ServerThread extends Thread {
+    /**
+     * This thread runs while listening for incoming connections.
+     * It runs until cancelled.
+     */
+    private class AcceptThread extends Thread {
 
         private BluetoothServerSocket serverSocket;
         private boolean running = true;
 
-        public ServerThread() {
+        public AcceptThread() {
             try {
                 serverSocket = getBluetoothAdapter().listenUsingRfcommWithServiceRecord(
                         AbstractBTActivity.BT_APP_NAME, AbstractBTActivity.BT_APP_UUID);
@@ -156,15 +160,15 @@ showToast("ON_STOP");
             while (running && null != serverSocket) {
                 try {
                     socket = serverSocket.accept();
+                    if (Game.D) { Log.i(Game.TAG, "socket connection accepted"); }
                 } catch (IOException e) {
                     if (Game.D) { Log.d(Game.TAG, "failed to accept socket", e); }
                     socket = null;
                 }
                 // if a connection was accepted
                 if (null != socket) {
-                    ConnectedClientThread th = new ConnectedClientThread(socket);
+                    ConnectedThread th = new ConnectedThread(socket);
                     th.start();
-                    socket = null;
                 }
             }
         }
@@ -181,73 +185,6 @@ showToast("ON_STOP");
                 Log.e("nababu", "failed to close server socket", e);
             }
             serverSocket = null;
-        }
-
-    }
-
-    // ------------------------------------------------------------------------
-
-    protected class ConnectedClientThread extends Thread implements Communicator {
-
-        private BluetoothSocket socket;
-        private BufferedReader reader;
-        private PrintWriter writer;
-
-        public ConnectedClientThread(BluetoothSocket socket) {
-            if (null == socket) { throw new NullPointerException("socket cannot be null"); }
-            this.socket = socket;
-
-            try {
-                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                writer = new PrintWriter(socket.getOutputStream());
-            } catch (IOException e) {
-                finish();
-                handleCaughtException("failed to initialize reader/writer", e);
-            }
-        }
-
-        public void run() {
-            Player player = new Player();
-            player.setCommunicator(this);
-            Game.getInstance().addPlayer(player);
-
-            while (null != socket) {
-                try {
-                    String packet = reader.readLine();
-
-                    final String parts[] = packet.split(":");
-                    final String username = parts[1];
-                    player.setName(username);
-                    Game.getInstance().getHandler().obtainMessage(ActionEnum.JOIN.ordinal(), username).sendToTarget();
-                    // response with JOINED packet
-                    sendMessage(encodePacket(ActionEnum.JOINED, username));
-                } catch (Exception e) {
-                    finish();
-                    handleCaughtException("failed to read from socket", e);
-                }
-            }
-        }
-
-        @Override
-        public void sendMessage(String packet) {
-            writer.println(packet);
-            writer.flush();
-        }
-
-        @Override
-        public void finish() {
-            try {
-                if (null != reader) { reader.close(); }
-                if (null != writer) { writer.close(); }
-            } catch (IOException e) {
-                Log.e("nababu", "failed to close reader/writer", e);
-            }
-            try {
-                if (null != socket) { socket.close(); }
-            } catch (IOException e) {
-                Log.e("nababu", "failed to close socket", e);
-            }
-            socket = null;
         }
 
     }
