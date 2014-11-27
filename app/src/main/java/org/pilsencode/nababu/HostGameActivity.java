@@ -85,7 +85,7 @@ showToast("ON_START");
 showToast("ON_STOP");
 
         // remove itself as game observer
-//        Game.getInstance().removeEventObserver();
+//XXX        Game.getInstance().removeEventObserver();
 
         // stop listening for incoming connection
         if (null != acceptThread && acceptThread.isAlive()) {
@@ -130,6 +130,11 @@ showToast("ON_STOP");
         switch (event.action) {
             case JOIN:
                 String name = event.params[0];
+                // on server the player name was unknown until now, so set it
+                if (Game.getInstance().isServer()) {
+                    event.player.setName(name);
+                }
+                // add new player into displayed list of players
                 playersListAdapter.add(name);
                 // response with JOINED packet
                 event.player.getCommunicator().sendMessage(encodePacket(ActionEnum.JOINED, name));

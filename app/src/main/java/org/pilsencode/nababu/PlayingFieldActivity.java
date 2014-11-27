@@ -98,10 +98,9 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     public void onGameEvent(Game.GameEvent event) {
         switch (event.action) {
             case MOVE:
-                String name = event.params[0];
                 int incX = Integer.valueOf(event.params[1]);
                 int incY = Integer.valueOf(event.params[2]);
-                Player p = Game.getInstance().getPlayer(name);
+                Player p = event.player;
                 Point coordinates = p.getCoordinates();
                 coordinates.x += incX;
                 coordinates.y += incY;

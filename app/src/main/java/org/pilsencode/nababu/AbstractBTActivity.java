@@ -172,14 +172,12 @@ public abstract class AbstractBTActivity extends Activity {
             while (null != socket) {
                 try {
                     String packet = reader.readLine();
-showToast("RESP: " + packet);
+                    if (Game.D) { Log.d(Game.TAG, "packet received: " + packet); }
 
                     final String parts[] = packet.split(":");
                     final ActionEnum action = ActionEnum.valueOf(parts[0]);
+
                     Game.GameEvent event = new Game.GameEvent(action, player, Arrays.copyOfRange(parts, 1, parts.length));
-                    if (action == ActionEnum.JOIN) {
-                        player.setName(parts[1]);
-                    }
                     Game.getInstance().getHandler().obtainMessage(action.ordinal(), event).sendToTarget();
                 } catch (Exception e) {
                     finish();
