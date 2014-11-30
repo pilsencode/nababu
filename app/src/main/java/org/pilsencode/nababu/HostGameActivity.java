@@ -85,7 +85,7 @@ showToast("ON_START");
 showToast("ON_STOP");
 
         // remove itself as game observer
-//XXX        Game.getInstance().removeEventObserver();
+        Game.getInstance().removeEventObserver(this);
 
         // stop listening for incoming connection
         if (null != acceptThread && acceptThread.isAlive()) {
@@ -138,6 +138,8 @@ showToast("ON_STOP");
                 playersListAdapter.add(name);
                 // response with JOINED packet
                 event.player.getCommunicator().sendMessage(encodePacket(ActionEnum.JOINED, name));
+                // response with me to add me on client side
+                event.player.getCommunicator().sendMessage(encodePacket(ActionEnum.JOINED, Game.getInstance().getMe().getName()));
                 break;
         }
     }

@@ -88,7 +88,7 @@ showToast("ON_START");
 showToast("ON_STOP");
 
         // remove itself as game observer
-        Game.getInstance().removeEventObserver();
+        Game.getInstance().removeEventObserver(this);
 
         // stop connecting thread
         if (null != connectThread && connectThread.isAlive()) {
@@ -189,6 +189,11 @@ showToast("ON_STOP");
     public void onGameEvent(Game.GameEvent event) {
         switch (event.action) {
             case JOINED:
+                Game game = Game.getInstance();
+                String name = event.params[0];
+                if (!game.getMe().getName().equals(name)) {
+                    game.addPlayer(new Player(name));
+                }
                 Toast.makeText(this, "Player joined: " + event.params[0], Toast.LENGTH_LONG).show();
                 break;
             case START:

@@ -89,7 +89,7 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     protected void onStop() {
         super.onStop();
         // remove itself as game observer
-        Game.getInstance().removeEventObserver();
+        Game.getInstance().removeEventObserver(this);
     }
 
     // ------------------------------------------- Game.GameEventObserver Stuff
@@ -100,7 +100,13 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
             case MOVE:
                 int incX = Integer.valueOf(event.params[1]);
                 int incY = Integer.valueOf(event.params[2]);
-                Player p = event.player;
+                Player p;
+                if (Game.getInstance().isServer()) {
+                    p = event.player;
+                } else {
+                    String playerName = event.params[0];
+                    p = Game.getInstance().getPlayer(playerName);
+                }
                 Point coordinates = p.getCoordinates();
                 coordinates.x += incX;
                 coordinates.y += incY;
