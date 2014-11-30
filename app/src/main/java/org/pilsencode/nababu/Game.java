@@ -10,9 +10,11 @@ import android.os.Looper;
 import android.os.Message;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Set;
 
 
 /**
@@ -61,6 +63,9 @@ public class Game implements Drawable, Observer {
         fieldSizeY = y;
     }
 
+    public Player getMe() {
+        return me;
+    }
     public void setMe(Player player) {
         me = player;
         // I'm baba
@@ -117,6 +122,11 @@ public class Game implements Drawable, Observer {
         // XXX only for joined client
         if (!isServer()) {
             me.getCommunicator().sendMessage(ActionEnum.MOVE + ":" + me.getName() + ":" + incX + ":" + incY);
+        }
+        // XXX send to all joined players my movement
+        if (Game.getInstance().isServer() && Game.getInstance().getPlayers().size() > 0) {
+            Player p1 = Game.getInstance().getPlayers().get(0);
+            p1.getCommunicator().sendMessage(ActionEnum.MOVE + ":" + Game.getInstance().getMe().getName() + ":" + incX + ":" + incY);
         }
     }
 
@@ -245,21 +255,21 @@ public class Game implements Drawable, Observer {
         void onGameEvent(GameEvent event);
     }
 
-    private GameEventObserver observer;
+    private Set<GameEventObserver> observers = new HashSet<GameEventObserver>();
 
     public void registerEventObserver(GameEventObserver observer) {
-        this.observer = observer;
+        observers.add(observer);
     }
 
-    public void removeEventObserver() {
-        observer = null;
+    public void removeEventObserver(GameEventObserver observer) {
+        observers.remove(observer);
     }
 
     private Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             GameEvent event = (GameEvent) msg.obj;
-            if (null != observer) {
+            for (GameEventObserver observer : observers) {
                 observer.onGameEvent(event);
             }
         }
