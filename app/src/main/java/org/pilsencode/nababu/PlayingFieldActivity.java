@@ -1,7 +1,9 @@
 package org.pilsencode.nababu;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.hardware.Sensor;
@@ -15,6 +17,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
+ * This activity represents playing field of the game.
+ *
  * Created by veny on 5.11.14.
  */
 public class PlayingFieldActivity extends Activity implements SensorEventListener, Game.GameEventObserver {
@@ -92,6 +96,21 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         Game.getInstance().removeEventObserver(this);
     }
 
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to leave the game?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // TODO [veny] send STOP to all clients if I am server
+                        PlayingFieldActivity.this.finish();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
     // ------------------------------------------- Game.GameEventObserver Stuff
 
     @Override
@@ -115,6 +134,7 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         }
     }
 
+    // ---------------------------------------------- SensorEventListener Stuff
 
     @Override
     public void onSensorChanged(SensorEvent e) {
@@ -132,7 +152,7 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         // tiltXYZ: returned angle is in the range -pi/2 through pi/2
         double tiltX = Math.asin(accX / totAcc);
         double tiltY = Math.asin(accY / totAcc);
-        double tiltZ = Math.asin(accZ / totAcc);
+        // double tiltZ = Math.asin(accZ / totAcc);
         //Log.d("nababu", "values: tiltX: " + tiltX + ", tiltY: " + tiltY + ", tiltZ: " + tiltZ);
 
         // TODO [veny] there should be Strategy design pattern to calculate the speed of movement
