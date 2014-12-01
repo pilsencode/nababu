@@ -98,6 +98,12 @@ showToast("ON_STOP");
     }
 
     @Override
+    public void onDestroy() {
+        // unregister for broadcasts when a device is discovered or discovery finished
+        this.unregisterReceiver(broadcastsDiscoveryReceiver);
+    }
+
+    @Override
     protected void btPrepared4Server() {
         throw new IllegalStateException("not relevant for client");
     }
@@ -127,12 +133,11 @@ showToast("ON_STOP");
         // register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         this.registerReceiver(broadcastsDiscoveryReceiver, filter);
-        // TODO [veny] deregister receiver
+        this.unregisterReceiver(broadcastsDiscoveryReceiver);
 
         // register for broadcasts when discovery has finished
         filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         this.registerReceiver(broadcastsDiscoveryReceiver, filter);
-        // TODO [veny] deregister receiver
 
         setProgressBarIndeterminateVisibility(true);
         // stop discovering if already running
