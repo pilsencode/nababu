@@ -155,6 +155,7 @@ public abstract class AbstractBTActivity extends Activity {
             }
         }
 
+        @Override
         public void run() {
             final Player player = new Player();
             player.setCommunicator(this);
