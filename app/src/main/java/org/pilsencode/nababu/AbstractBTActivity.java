@@ -82,7 +82,8 @@ public abstract class AbstractBTActivity extends Activity {
     }
 
     /**
-     * Gets username of player.
+     * Gets username of player which was entered into Name field in the EntryPointActivity
+     *
      * @return username
      */
     protected String getUsername() {
@@ -116,12 +117,20 @@ public abstract class AbstractBTActivity extends Activity {
     protected void showToast(final String toast) {
         runOnUiThread(new Runnable() {
             public void run() {
-                Toast.makeText(AbstractBTActivity.this, toast, Toast.LENGTH_SHORT).show();
+            Toast.makeText(AbstractBTActivity.this, toast, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    protected String encodePacket(ActionEnum action, Object... args) {
+    /**
+     * Create standardized String which will be send
+     * packet string format: action:arg1:arg2:arg3...
+     *
+     * @param action Action identification
+     * @param args   Arguments of the action
+     * @return String which can be passed via Communicator
+     */
+    protected static String encodePacket(ActionEnum action, Object... args) {
         StringBuilder rslt = new StringBuilder(action.toString());
         for (Object arg : args) {
             rslt.append(':').append(arg.toString());
@@ -155,30 +164,47 @@ public abstract class AbstractBTActivity extends Activity {
             }
         }
 
+        /**
+         * Method which is started when communication between server and client starts
+         */
         @Override
         public void run() {
             final Player player = new Player();
+
+            // ----------- initial communication with server / player --------
+            // Create Player object with Communicator
             player.setCommunicator(this);
 
+            // If I'm the server it means that somebody wants to join the game
             if (Game.getInstance().isServer()) {
-                // we do not know the name now, wait for JOIN packet
+                // We do not know the name of player now. Just add user to the list of game players
+                // (server will use this list of players with Communicator to send messages to them)
+                // username of the player will be received later in JOIN packet
                 Game.getInstance().addPlayer(player);
             } else {
+                // If I'm not the server, it means that I must sent JOIN request to the server
+                // Create player object with communicator and set it to Game for later communication
                 player.setName(getUsername());
                 Game.getInstance().setMe(player);
-                // send username to server
-                sendMessage(encodePacket(ActionEnum.JOIN, getUsername()));
+
+                // send my username to the server
+                sendPacket(encodePacket(ActionEnum.JOIN, getUsername()));
             }
 
+            // ----------- another communication with server / player --------
             while (null != socket) {
                 try {
                     String packet = reader.readLine();
                     if (Game.D) { Log.d(Game.TAG, "packet received: " + packet); }
 
+                    // this part of code is opposite to encodePacket()
                     final String parts[] = packet.split(":");
+
+                    // first part of packet is action, rest of packet are arguments of action
                     final ActionEnum action = ActionEnum.valueOf(parts[0]);
 
-                    Game.GameEvent event = new Game.GameEvent(action, player, Arrays.copyOfRange(parts, 1, parts.length));
+                    // When any packet is received, just fire game event - appropriate observer will handle it
+                    Game.GameEvent event = new Game.GameEvent(player, action, Arrays.copyOfRange(parts, 1, parts.length));
                     Game.getInstance().getHandler().obtainMessage(action.ordinal(), event).sendToTarget();
                 } catch (Exception e) {
                     finish();
@@ -188,7 +214,7 @@ public abstract class AbstractBTActivity extends Activity {
         }
 
         @Override
-        public void sendMessage(String packet) {
+        public void sendPacket(String packet) {
             writer.println(packet);
             writer.flush();
         }

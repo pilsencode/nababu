@@ -8,11 +8,11 @@ package org.pilsencode.nababu;
 public interface Communicator {
 
     /**
-     * Sends message to other device.
+     * Sends packet to other device.
      *
      * @param packet message to be sent
      */
-    void sendMessage(String packet);
+    void sendPacket(String packet);
 
 
     /**
