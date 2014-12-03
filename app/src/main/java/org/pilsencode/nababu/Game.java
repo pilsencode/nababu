@@ -28,11 +28,15 @@ public class Game implements Drawable, Observer {
     public static final boolean D = true;
     public static final String TAG = "nababu";
 
-    private static Game instance = null;
+    // color schema (see http://paletton.com/)
+    public static final int SCREEN_BG_COLOR = Color.rgb(170, 121, 57);
+    public static final int FIELD_BG_COLOR = Color.rgb(212, 167, 106);
+    public static final int FIELD_BORDER_COLOR = Color.rgb(85, 49, 0);
 
     public static final int BORDER_WIDTH = 10;
-    public static final int BORDER_COLOR = Color.RED;
-    public static final int BG_COLOR = Color.GRAY;
+
+    // singleton instance
+    private static Game instance = null;
 
     private Player me;
     private List<Player> players = new ArrayList<Player>();
@@ -124,7 +128,7 @@ public class Game implements Drawable, Observer {
             me.getCommunicator().sendMessage(ActionEnum.MOVE + ":" + me.getName() + ":" + incX + ":" + incY);
         }
         // XXX send to all joined players my movement
-        if (Game.getInstance().isServer() && Game.getInstance().getPlayers().size() > 0) {
+        if (Game.getInstance().isServer() && Game.getInstance().getPlayers().size() > 1) {
             Player p1 = Game.getInstance().getPlayers().get(0);
             p1.getCommunicator().sendMessage(ActionEnum.MOVE + ":" + Game.getInstance().getMe().getName() + ":" + incX + ":" + incY);
         }
@@ -151,13 +155,13 @@ public class Game implements Drawable, Observer {
         int top = (fieldSizeY - rectSize) / 2;
 
         // field border
-        paint.setColor(BORDER_COLOR);
+        paint.setColor(FIELD_BORDER_COLOR);
         paint.setStrokeWidth(BORDER_WIDTH);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(0, top, rectSize, top + rectSize, paint);
 
         // field background
-        paint.setColor(BG_COLOR);
+        paint.setColor(FIELD_BG_COLOR);
         paint.setStrokeWidth(BORDER_WIDTH);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawRect(

@@ -30,7 +30,7 @@ public class PlayingFieldView extends View {
             // draw background
             Paint paint = new Paint();
             paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Color.WHITE);
+            paint.setColor(Game.SCREEN_BG_COLOR);
             canvas.drawPaint(paint);
 
             intialized = true;
