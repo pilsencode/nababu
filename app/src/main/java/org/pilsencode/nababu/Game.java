@@ -220,10 +220,12 @@ public class Game implements Drawable {
      * @param incY in Increment(decrement when negative) how current player will move on the board on Y axis
      */
     public void moveMe(int incX, int incY) {
-        int normX = normalizeIncrement(incX);
-        int normY = normalizeIncrement(incY);
+//        int normX = normalizeIncrement(incX);
+//        int normY = normalizeIncrement(incY);
+        int normX = incX;
+        int normY = incY;
 
-        // trigger game event that I moved
+//        trigger game event that I moved
         triggerEvent(new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(normX), String.valueOf(normY)));
     }
 
@@ -291,7 +293,9 @@ public class Game implements Drawable {
      * @return Size of move which will be rendered on this device
      */
     protected int adaptIncrement(int increment) {
-        return (int)(increment / sizeMultiplier);
+        int adapt = 10;
+        // the bigger is screen size in pixels, the bigger must be size of the move
+        return (int)(increment * 1/sizeMultiplier*adapt);
     }
 
     // --------------------------------------------------------- Drawable Stuff
