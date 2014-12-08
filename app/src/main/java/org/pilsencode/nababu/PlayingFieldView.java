@@ -25,7 +25,7 @@ public class PlayingFieldView extends View {
 
         if (!intialized) {
             // set size of playing filed
-            game.setFieldSize(getWidth(), getHeight());
+            game.setBoardSize(getWidth(), getHeight());
 
             // draw background
             Paint paint = new Paint();

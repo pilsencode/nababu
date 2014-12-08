@@ -194,14 +194,21 @@ showToast("ON_STOP");
     public void onGameEvent(Game.GameEvent event) {
         switch (event.action) {
             case JOINED:
-                Game game = Game.getInstance();
-                String name = event.params[0];
-                if (!game.getMe().getName().equals(name)) {
-                    game.addPlayer(new Player(name));
+                // this message must be received by clients only
+                if (!Game.getInstance().isServer()) {
+                    // When I receive message that somebody joined, add him to the game (except myself)
+                    Game game = Game.getInstance();
+                    String name = event.params[0];
+
+                    // don't add myself to the list of other players
+                    if (!game.getMe().getName().equals(name)) {
+                        game.addPlayerSkipDuplicity(new Player(name));
+                    }
+
+    showToast("Player joined: " + name);
                 }
-                Toast.makeText(this, "Player joined: " + event.params[0], Toast.LENGTH_LONG).show();
                 break;
-            case START:
+            case START_GAME:
                 Intent intent = new Intent(this, PlayingFieldActivity.class);
                 startActivity(intent);
                 break;

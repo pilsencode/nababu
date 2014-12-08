@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
 import android.hardware.Sensor;
@@ -11,6 +12,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import java.util.Date;
 import java.util.Timer;
@@ -38,18 +41,18 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-        Game.getInstance().addAI();
-
-        // temporary code till BT connection is ready - test observer
-        // TODO - replace with "game.update(null, player)" - player with new coordinates
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                Game.getInstance().moveAI();
-            }
-        };
-        Timer timer = new Timer();
-        timer.schedule(task, new Date(), 300);
+//        Game.getInstance().addAI();
+//
+//        // temporary code till BT connection is ready - test observer
+//        // TODO - replace with "game.update(null, player)" - player with new coordinates
+//        TimerTask task = new TimerTask() {
+//            @Override
+//            public void run() {
+//                Game.getInstance().moveAI();
+//            }
+//        };
+//        Timer timer = new Timer();
+//        timer.schedule(task, new Date(), 300);
         // temporary code end
 
 //        //setContentView(R.layout.activity_playing_field);
@@ -104,11 +107,22 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // TODO [veny] send STOP to all clients if I am server
+                        // is this ok? todo solved?
+                        Game.getInstance().sendToOtherPlayers(new Game.GameEvent(ActionEnum.END_GAME));
+
                         PlayingFieldActivity.this.finish();
                     }
                 })
                 .setNegativeButton("No", null)
                 .show();
+    }
+
+    /**
+     * Method to stop the game - move from playing field to the starting activity
+     */
+    private void stopGame() {
+        Intent intent = new Intent(getBaseContext(), EntryPointActivity.class);
+        startActivity(intent);
     }
 
     // ------------------------------------------- Game.GameEventObserver Stuff
@@ -117,19 +131,33 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     public void onGameEvent(Game.GameEvent event) {
         switch (event.action) {
             case MOVE:
+                // send this action to server/clients
+                Game.getInstance().sendToOthers(event);
+
+                // decode params of move action
+                String name = event.params[0];
+                Player player;
                 int incX = Integer.valueOf(event.params[1]);
                 int incY = Integer.valueOf(event.params[2]);
-                Player p;
-                if (Game.getInstance().isServer()) {
-                    p = event.player;
+
+
+                // find object of player who moved
+                // On the server this player is also in event.player, but on the client side not...
+                player = Game.getInstance().getPlayer(name);
+
+                if (null != player) {
+                    // move by the player (update his coordinates)
+                    Game.getInstance().movePlayer(player, incX, incY);
                 } else {
-                    String playerName = event.params[0];
-                    p = Game.getInstance().getPlayer(playerName);
+                    // TODO log somewhere?
+                    // Something like want to move by player "name" but cant because he is not me nor in the list of other players
                 }
-                Point coordinates = p.getCoordinates();
-                coordinates.x += incX;
-                coordinates.y += incY;
+
                 mView.invalidate();
+                break;
+            case END_GAME:
+                Toast.makeText(this, "END_GAME received, going to Entry Activity", Toast.LENGTH_LONG);
+                stopGame();
                 break;
         }
     }
@@ -156,6 +184,8 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         //Log.d("nababu", "values: tiltX: " + tiltX + ", tiltY: " + tiltY + ", tiltZ: " + tiltZ);
 
         // TODO [veny] there should be Strategy design pattern to calculate the speed of movement
+        // (int)(tiltX * 2 / Math.PI) -  is increment (-1 to 1, 0 is no move)
+        // 25 is constant for good speed
         int speedX = (int)(tiltX * 2 / Math.PI * 25);
         int speedY = (int)(-tiltY * 2 / Math.PI * 25);
         if (0 != speedX || 0 != speedY) {

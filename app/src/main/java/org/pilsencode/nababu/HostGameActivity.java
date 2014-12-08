@@ -110,17 +110,14 @@ showToast("ON_STOP");
     }
 
     /**
-     * Called when the user clicks the 'Start' button.
+     * Called when the user clicks the 'Start' button. (on the server side)
      */
     public void startGame(View view) {
         Intent intent = new Intent(this, PlayingFieldActivity.class);
         startActivity(intent);
 
-        // TODO [veny] XXX send to all joined players
-        if (Game.getInstance().isServer() && Game.getInstance().getPlayers().size() > 0) {
-            Player p1 = Game.getInstance().getPlayers().get(0);
-            p1.getCommunicator().sendMessage(ActionEnum.START + ":DELETE_ME");
-        }
+        // inform all clients that the game starts
+        Game.getInstance().sendToOtherPlayers(new Game.GameEvent(ActionEnum.START_GAME, "DELETE_ME"));
     }
 
     // ------------------------------------------- Game.GameEventObserver Stuff
@@ -129,17 +126,36 @@ showToast("ON_STOP");
     public void onGameEvent(Game.GameEvent event) {
         switch (event.action) {
             case JOIN:
-                String name = event.params[0];
-                // on server the player name was unknown until now, so set it
+                // JOIN action is sent only from the client to the server
                 if (Game.getInstance().isServer()) {
-                    event.player.setName(name);
+                    String name = event.params[0];
+                    // on server the player name was unknown until now
+                    // check if the players name already exists, if yes - return info that the player must change his name
+                    if (Game.getInstance().isNameFree(name)) {
+                        // name of the player is free - set it (it was unknow until now)
+                        event.player.setName(name);
+
+                        // add new player into displayed list of players
+                        playersListAdapter.add(name);
+
+                        // send all currently joined players name of the joined player
+                        Game.getInstance().sendToOtherPlayers(new Game.GameEvent(event.player, ActionEnum.JOINED, name));
+                        // send the name of server player to all players
+                        Game.getInstance().sendToOtherPlayers(new Game.GameEvent(ActionEnum.JOINED, Game.getInstance().getMe().getName()));
+
+                        // 1 - I guess it does not matter what is send.. just send any integer
+//                        Game.getInstance().getHandler().obtainMessage(1, new Game.GameEvent(event.player, ActionEnum.JOINED, name)).sendToTarget();
+                        // send the name of server player to all players
+//                        Game.getInstance().getHandler().obtainMessage(1, new Game.GameEvent(event.player, ActionEnum.JOINED, Game.getInstance().getMe().getName())).sendToTarget();
+                    } else {
+                        // TODO send info that player exists and user must change his name - he has to send join packet again
+                        showToast("Player name "+ name +" already exists and user must change his name - he has to send join packet again (TODO implement)");
+                    }
                 }
-                // add new player into displayed list of players
-                playersListAdapter.add(name);
                 // response with JOINED packet
-                event.player.getCommunicator().sendMessage(encodePacket(ActionEnum.JOINED, name));
+//                event.player.getCommunicator().sendPacket(encodePacket(ActionEnum.JOINED, name));
                 // response with me to add me on client side
-                event.player.getCommunicator().sendMessage(encodePacket(ActionEnum.JOINED, Game.getInstance().getMe().getName()));
+//                event.player.getCommunicator().sendPacket(encodePacket(ActionEnum.JOINED, Game.getInstance().getMe().getName()));
                 break;
         }
     }
