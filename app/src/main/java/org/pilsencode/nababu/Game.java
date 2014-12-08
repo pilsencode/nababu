@@ -145,7 +145,7 @@ public class Game implements Drawable {
      */
     public Player getPlayer(String name) {
         // check if it's me
-        if (me.getName().equals(name)) {
+        if (null != me && me.getName().equals(name)) {
             return me;
         }
 
@@ -156,7 +156,7 @@ public class Game implements Drawable {
             }
         }
 
-        throw new InternalError("Player with name: '" + name + "' not found");
+        throw new IllegalStateException("player not found, name=" + name);
     }
 
     /**
