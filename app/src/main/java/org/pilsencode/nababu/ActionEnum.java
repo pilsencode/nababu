@@ -19,7 +19,7 @@ public enum ActionEnum {
     JOINED,
 
     // info about player move
-    // params: username, incX, incY
+    // params: username, positionX, positionY
     // direction: both (server -> client, client -> server)
     MOVE,
 

@@ -10,9 +10,14 @@ import android.graphics.Point;
  */
 public class Player {
 
+    public static final int DEFAULT_SPEED = 80;
+
     private String name;
 
-    private int radius = 22;
+    /**
+     * Size of the player on the FIELD_SIZE_BASE x FIELD_SIZE_BASE board
+     */
+    private int radius = 50;
 
     private Point coordinates;
 
@@ -53,6 +58,10 @@ public class Player {
 
     public int getColor() {
         return color;
+    }
+
+    public int getSpeed() {
+        return DEFAULT_SPEED;
     }
 
     public String getName() {

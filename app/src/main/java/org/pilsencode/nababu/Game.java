@@ -1,6 +1,5 @@
 package org.pilsencode.nababu;
 
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -37,10 +36,13 @@ public class Game implements Drawable {
      * Number which is used to convert moves - it's counted by current mobile screen size and
      * FIELD_SIZE_BASE
      */
-    private float sizeMultiplier;
+    private double sizeMultiplier;
 
     private static Game instance = null;
 
+    /**
+     * Border width in px (in the dimension of device)
+     */
     public static final int BORDER_WIDTH = 10;
     public static final int BORDER_COLOR = Color.RED;
     public static final int BG_COLOR = Color.GRAY;
@@ -88,7 +90,7 @@ public class Game implements Drawable {
         fieldSizeX = x;
         fieldSizeY = y;
         innerSize = Math.min(fieldSizeX, fieldSizeY) - (2 * BORDER_WIDTH);
-        sizeMultiplier = FIELD_SIZE_BASE / innerSize;
+        sizeMultiplier = (double)innerSize / FIELD_SIZE_BASE;
     }
 
     public Player getMe() {
@@ -216,50 +218,33 @@ public class Game implements Drawable {
      * This method is called by onSensorChanged() method
      * It normalizes increments and fires GameEvent
      *
-     * @param incX int Increment(decrement when negative) how current player will move on the board on X axis
-     * @param incY in Increment(decrement when negative) how current player will move on the board on Y axis
+     * @param angleX Tilt angle of the device (-1 - +1) on X axis
+     * @param angleY Tilt angle of the device (-1 - +1) on Y axis
      */
-    public void moveMe(int incX, int incY) {
-//        int normX = normalizeIncrement(incX);
-//        int normY = normalizeIncrement(incY);
-        int normX = incX;
-        int normY = incY;
-
-//        trigger game event that I moved
-        triggerEvent(new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(normX), String.valueOf(normY)));
-    }
-
-    /**
-     * Method which changes players position
-     *
-     * @param player   Player object whose coordinates should be changed
-     * @param normIncX Normalized increment on the X axis
-     * @param normIncY Normalized increment on the Y axis
-     */
-    public void movePlayer(Player player, int normIncX, int normIncY) {
-        // change normalized increment to the proper size of this device
-        int incX = adaptIncrement(normIncX);
-        int incY = adaptIncrement(normIncY);
-
-        // get players current coordinates
-        Point coordinates = player.getCoordinates();
-        // increment coordinates (decrease when increment is negative)
-        coordinates.x += incX;
-        coordinates.y += incY;
+    public void moveMe(double angleX, double angleY) {
+        Point coordinates = me.getCoordinates();
+        coordinates.x += me.getSpeed()*angleX;
+        coordinates.y += me.getSpeed()*angleY;
 
         /* make sure player will not go out from the board */
-        if (coordinates.x < player.getRadius()) {
-            coordinates.x = player.getRadius();
+        if (coordinates.x < me.getRadius()) {
+            coordinates.x = me.getRadius();
         }
-        if (coordinates.y < player.getRadius()) {
-            coordinates.y = player.getRadius();
+        if (coordinates.y < me.getRadius()) {
+            coordinates.y = me.getRadius();
         }
-        if (coordinates.x > (innerSize - player.getRadius())) {
-            coordinates.x = innerSize - player.getRadius();
+        if (coordinates.x > (FIELD_SIZE_BASE - me.getRadius())) {
+            coordinates.x = FIELD_SIZE_BASE - me.getRadius();
         }
-        if (coordinates.y > (innerSize - player.getRadius())) {
-            coordinates.y = innerSize - player.getRadius();
+        if (coordinates.y > (FIELD_SIZE_BASE - me.getRadius())) {
+            coordinates.y = FIELD_SIZE_BASE - me.getRadius();
         }
+
+        // send this action to server/clients
+        Game.getInstance().sendToOthers(new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(coordinates.x), String.valueOf(coordinates.y)));
+
+        // trigger game event that I moved
+        triggerEvent(new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(coordinates.x), String.valueOf(coordinates.y)));
     }
 
     /**
@@ -277,25 +262,14 @@ public class Game implements Drawable {
     }
 
     /**
-     * Change move size from this mobile's screen to the normalized one
+     * Change size of dimension from the normalized on (1000 x 1000) to the device screen size
      *
-     * @param increment Increment from this device
-     * @return Normalized size of the move which is suitable on device with display of size FIELD_SIZE_BASE
-     */
-    protected int normalizeIncrement(int increment) {
-        return (int)(increment * sizeMultiplier);
-    }
-
-    /**
-     * Change size of the move from the standard to the size which will be used on this device
-     *
-     * @param increment Normalized size of the move (this size of move is suitable for device of size FIELD_SIZE_BASE)
+     * @param size Normalized dimension (FIELD_SIZE_BASE)
      * @return Size of move which will be rendered on this device
      */
-    protected int adaptIncrement(int increment) {
-        int adapt = 10;
+    protected int adaptSize(int size) {
         // the bigger is screen size in pixels, the bigger must be size of the move
-        return (int)(increment * 1/sizeMultiplier*adapt);
+        return (int)(size * sizeMultiplier);
     }
 
     // --------------------------------------------------------- Drawable Stuff
@@ -322,33 +296,37 @@ public class Game implements Drawable {
                 rectSize - BORDER_WIDTH, top + rectSize - BORDER_WIDTH, paint);
 
         // draw 'app otherPlayers'
-        drawAllPlayers(canvas, rectSize, top);
+        drawAllPlayers(canvas, top);
     }
 
     /**
      * Renders all otherPlayers.
      */
-    private void drawAllPlayers(Canvas canvas, int rectSize, int top) {
-        drawPlayer(canvas, me, rectSize, top);
+    private void drawAllPlayers(Canvas canvas, int top) {
+        drawPlayer(canvas, me, top);
         for (Player player : otherPlayers) {
-            drawPlayer(canvas, player, rectSize, top);
+            drawPlayer(canvas, player, top);
         }
     }
 
     /**
      * Draws one player.
      */
-    private void drawPlayer(Canvas canvas, Player player, int rectSize, int top) {
+    private void drawPlayer(Canvas canvas, Player player, int top) {
         if (!player.isActivated()) {
             return;
         }
 
+        int adaptedX = adaptSize(player.getCoordinates().x);
+        int adaptedY = adaptSize(player.getCoordinates().y);
+        int adaptedRadius = adaptSize(player.getRadius());
+
         // draw player
         paint.setColor(player.getColor());
         canvas.drawCircle(
-                BORDER_WIDTH + player.getCoordinates().x,
-                top + BORDER_WIDTH + player.getCoordinates().y,
-                player.getRadius(), paint);
+                BORDER_WIDTH + adaptedX,
+                top + BORDER_WIDTH + adaptedY,
+                adaptedRadius, paint);
 
         // symbol on 'player'
         int fontSize = player.getRadius() - 10;
@@ -363,25 +341,9 @@ public class Game implements Drawable {
         paint.setTextSize(fontSize);
         canvas.drawText(
                 player.getSymbol(),
-                BORDER_WIDTH + player.getCoordinates().x - (fontSize / 3),
-                top + BORDER_WIDTH + player.getCoordinates().y + (fontSize / 3), paint);
+                BORDER_WIDTH + adaptedX - (fontSize / 3),
+                top + BORDER_WIDTH + adaptedY + (fontSize / 3), paint);
 
-    }
-
-    // temporary code till BT connection is ready - test observer
-    public void moveAI() {
-        Player ai = getPlayer("AI");
-        if (null == ai) {
-            return;
-        }
-
-        Point point = ai.getCoordinates();
-
-        // create player with same nama to test update method
-        Player updated = new Player("AI");
-        updated.setCoordinates(new Point(point.x+2, point.y+2));
-
-//        this.update(null, updated);
     }
 
     // --------------------------------------- Communicating with Players

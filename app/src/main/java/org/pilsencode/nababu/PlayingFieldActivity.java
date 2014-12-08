@@ -131,32 +131,29 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     public void onGameEvent(Game.GameEvent event) {
         switch (event.action) {
             case MOVE:
-                // send this action to server/clients
-                Game.getInstance().sendToOthers(event);
-
                 // decode params of move action
                 String name = event.params[0];
-                Player player;
-                int incX = Integer.valueOf(event.params[1]);
-                int incY = Integer.valueOf(event.params[2]);
 
+                // if other player moved, change his position
+                if (!name.equals(Game.getInstance().getMe().getName())) {
+                    // find object of player who moved
+                    // On the server this player is also in event.player, but on the client side not...
+                    int positionX = Integer.valueOf(event.params[1]);
+                    int positionY = Integer.valueOf(event.params[2]);
 
-                // find object of player who moved
-                // On the server this player is also in event.player, but on the client side not...
-                player = Game.getInstance().getPlayer(name);
+                    Player player = Game.getInstance().getPlayer(name);
 
-                if (null != player) {
                     // move by the player (update his coordinates)
-                    Game.getInstance().movePlayer(player, incX, incY);
-                } else {
-                    // TODO log somewhere?
-                    // Something like want to move by player "name" but cant because he is not me nor in the list of other players
+                    player.getCoordinates().x = positionX;
+                    player.getCoordinates().y = positionY;
                 }
+
+                //Toast.makeText(this, "ddd", Toast.LENGTH_SHORT).show();
 
                 mView.invalidate();
                 break;
             case END_GAME:
-                Toast.makeText(this, "END_GAME received, going to Entry Activity", Toast.LENGTH_LONG);
+                Toast.makeText(this, "END_GAME received, going to Entry Activity", Toast.LENGTH_LONG).show();
                 stopGame();
                 break;
         }
@@ -185,12 +182,11 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
 
         // TODO [veny] there should be Strategy design pattern to calculate the speed of movement
         // (int)(tiltX * 2 / Math.PI) -  is increment (-1 to 1, 0 is no move)
-        // 25 is constant for good speed
-        int speedX = (int)(tiltX * 2 / Math.PI * 25);
-        int speedY = (int)(-tiltY * 2 / Math.PI * 25);
+        double speedX = (tiltX * 2 / Math.PI);
+        double speedY = (-tiltY * 2 / Math.PI);
         if (0 != speedX || 0 != speedY) {
             Game.getInstance().moveMe(speedX, speedY);
-            mView.invalidate();
+//            mView.invalidate();
         }
     }
 
