@@ -43,8 +43,6 @@ public class Game implements Drawable {
      */
     private double sizeMultiplier;
 
-    private static Game instance = null;
-
     /**
      * Border width in px (in the dimension of device)
      */
