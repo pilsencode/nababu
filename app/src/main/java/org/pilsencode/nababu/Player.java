@@ -10,7 +10,7 @@ import android.graphics.Point;
  */
 public class Player {
 
-    public static final int DEFAULT_SPEED = 80;
+    public static final int DEFAULT_SPEED = 40;
 
     private String name;
 
