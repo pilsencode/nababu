@@ -2,11 +2,12 @@ package org.pilsencode.nababu;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.View;
 
 /**
+ * This view renders visual part of the running game.
+ *
  * Created by veny on 7.11.14.
  */
 public class PlayingFieldView extends View {

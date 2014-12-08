@@ -6,18 +6,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.widget.EditText;
 import android.widget.Toast;
 
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * This activity represents playing field of the game.
@@ -26,9 +21,12 @@ import java.util.TimerTask;
  */
 public class PlayingFieldActivity extends Activity implements SensorEventListener, Game.GameEventObserver {
 
+    private static final long SENSOR_MIN_REFRESH = 40; // [ms]
+
     private PlayingFieldView mView;
     private SensorManager mSensorManager;
     private Sensor mSensorAcc;
+    private long lastSensorEvent = System.currentTimeMillis();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,6 +161,13 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent e) {
+        long now = System.currentTimeMillis();
+        if ((now - lastSensorEvent) < SENSOR_MIN_REFRESH) {
+            return;
+        }
+
+        lastSensorEvent = now;
+
         float x = e.values[0];
         float y = e.values[1];
         float z = e.values[2];
@@ -178,7 +183,6 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         double tiltX = Math.asin(accX / totAcc);
         double tiltY = Math.asin(accY / totAcc);
         // double tiltZ = Math.asin(accZ / totAcc);
-        //Log.d("nababu", "values: tiltX: " + tiltX + ", tiltY: " + tiltY + ", tiltZ: " + tiltZ);
 
         // TODO [veny] there should be Strategy design pattern to calculate the speed of movement
         // (int)(tiltX * 2 / Math.PI) -  is increment (-1 to 1, 0 is no move)
@@ -186,7 +190,6 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         double speedY = (-tiltY * 2 / Math.PI);
         if (0 != speedX || 0 != speedY) {
             Game.getInstance().moveMe(speedX, speedY);
-//            mView.invalidate();
         }
     }
 
