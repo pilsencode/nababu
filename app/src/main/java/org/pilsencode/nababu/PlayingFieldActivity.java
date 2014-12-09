@@ -21,7 +21,10 @@ import android.widget.Toast;
  */
 public class PlayingFieldActivity extends Activity implements SensorEventListener, Game.GameEventObserver {
 
-    private static final long SENSOR_MIN_REFRESH = 40; // [ms]
+    /**
+     * Sensor refresh limit
+     */
+    private static final long SENSOR_REFRESH_LIMIT = 40; // [ms]
 
     private PlayingFieldView mView;
     private SensorManager mSensorManager;
@@ -142,6 +145,7 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
                     Player player = Game.getInstance().getPlayer(name);
 
                     // move by the player (update his coordinates)
+                    // TODO this should be somewhere? - same code should move by me and others
                     player.getCoordinates().x = positionX;
                     player.getCoordinates().y = positionY;
                 }
@@ -161,8 +165,9 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
 
     @Override
     public void onSensorChanged(SensorEvent e) {
+        // make sure all players have the same speed
         long now = System.currentTimeMillis();
-        if ((now - lastSensorEvent) < SENSOR_MIN_REFRESH) {
+        if ((now - lastSensorEvent) < SENSOR_REFRESH_LIMIT) {
             return;
         }
 

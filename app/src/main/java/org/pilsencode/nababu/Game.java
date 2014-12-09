@@ -226,6 +226,7 @@ public class Game implements Drawable {
      * @param angleY Tilt angle of the device (-1 - +1) on Y axis
      */
     public void moveMe(double angleX, double angleY) {
+        // TODO this should be somewhere? - same code should move by me and others
         Point coordinates = me.getCoordinates();
         coordinates.x += me.getSpeed()*angleX;
         coordinates.y += me.getSpeed()*angleY;
