@@ -11,6 +11,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 
@@ -26,21 +27,24 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
      */
     private static final long SENSOR_REFRESH_LIMIT = 40; // [ms]
 
-    private PlayingFieldView mView;
-    private SensorManager mSensorManager;
-    private Sensor mSensorAcc;
+    private PlayingFieldView view;
+    private SensorManager sensorManager;
+    private Sensor sensorAccelerometer;
     private long lastSensorEvent = System.currentTimeMillis();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mView = new PlayingFieldView(this);
-        setContentView(mView);
+        view = new PlayingFieldView(this);
+        setContentView(view);
 
+        // enforce the Portrait orientation
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        // to prevent the sleep mode on this activity
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorAcc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        sensorAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
 //        Game.getInstance().addAI();
 //
@@ -76,14 +80,14 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mSensorAcc, SensorManager.SENSOR_DELAY_GAME);
+        sensorManager.registerListener(this, sensorAccelerometer, SensorManager.SENSOR_DELAY_GAME);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         // unregister the sensor to save battery
-        mSensorManager.unregisterListener(this);
+        sensorManager.unregisterListener(this);
     }
 
     @Override
@@ -103,7 +107,7 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     @Override
     public void onBackPressed() {
         new AlertDialog.Builder(this)
-                .setMessage("Are you sure you want to leave the game?")
+                .setMessage("Are you sure you want to leave running game?")
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -152,10 +156,10 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
 
                 //Toast.makeText(this, "ddd", Toast.LENGTH_SHORT).show();
 
-                mView.invalidate();
+                view.invalidate();
                 break;
             case END_GAME:
-                Toast.makeText(this, "END_GAME received, going to Entry Activity", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Game finished", Toast.LENGTH_LONG).show();
                 stopGame();
                 break;
         }
