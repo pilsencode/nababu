@@ -54,7 +54,6 @@ public class HostGameActivity extends AbstractBTActivity implements Game.GameEve
     protected void onStart() {
         // Called just before the activity becomes visible to the user.
         super.onStart();
-showToast("ON_START");
 
         // reset the game, maybe coming back from PlayingField
         Game.getInstance().reset();
@@ -82,7 +81,6 @@ showToast("ON_START");
         // or because another activity (either an existing one or a new one)
         // has been resumed and is covering it.
         super.onStop();
-showToast("ON_STOP");
 
         // remove itself as game observer
         Game.getInstance().removeEventObserver(this);

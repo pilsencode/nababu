@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -125,9 +124,8 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     /**
      * Method to stop the game - move from playing field to the starting activity
      */
-    private void stopGame() {
-        Intent intent = new Intent(getBaseContext(), EntryPointActivity.class);
-        startActivity(intent);
+    private void stopGameOnClient() {
+        this.finish();
     }
 
     // ------------------------------------------- Game.GameEventObserver Stuff
@@ -160,7 +158,7 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
                 break;
             case END_GAME:
                 Toast.makeText(this, "Game finished", Toast.LENGTH_LONG).show();
-                stopGame();
+                stopGameOnClient(); // go back to Host/JoinGame -> onStart -> Game#reset()
                 break;
         }
     }
