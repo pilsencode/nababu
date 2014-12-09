@@ -176,6 +176,36 @@ public class Game implements Drawable {
         return false;
     }
 
+    public boolean checkTouchOfBaba() {
+        // create list of all players (including 'me')
+        List<Player> players = new ArrayList<Player>(otherPlayers);
+        players.add(me);
+
+        // find baba
+        Player baba = null;
+        for (Player p : players) {
+            if (p.isBaba()) {
+                baba = p;
+                players.remove(p);
+                break;
+            }
+        }
+        if (null == baba) {
+            throw new IllegalStateException("nobady is baba");
+        }
+
+        // test contact
+        for (Player p : players) {
+            if ((baba.getCoordinates().x + baba.getRadius() > p.getCoordinates().x - p.getRadius()
+                        && baba.getCoordinates().x + baba.getRadius() < p.getCoordinates().x + p.getRadius())
+                    || (baba.getCoordinates().x - baba.getRadius() > p.getCoordinates().x - p.getRadius()
+                        && baba.getCoordinates().x - baba.getRadius() < p.getCoordinates().x + p.getRadius())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Check if given name is free and can be assigned to a player
      *

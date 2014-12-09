@@ -152,7 +152,9 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
                     player.getCoordinates().y = positionY;
                 }
 
-                //Toast.makeText(this, "ddd", Toast.LENGTH_SHORT).show();
+                if (Game.getInstance().checkTouchOfBaba()) {
+                    Toast.makeText(this, "BABA!!!", Toast.LENGTH_SHORT).show();
+                }
 
                 view.invalidate();
                 break;
