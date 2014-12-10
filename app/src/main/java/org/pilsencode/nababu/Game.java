@@ -103,8 +103,6 @@ public class Game implements Drawable {
 
     public void setMe(Player player) {
         me = player;
-        // I'm baba
-        me.setBaba(true);
     }
 
 //    public void addAI() {
@@ -176,26 +174,34 @@ public class Game implements Drawable {
         return false;
     }
 
-    public boolean checkTouchOfBaba() {
-        // create list of all players (including 'me')
-        List<Player> players = new ArrayList<Player>(otherPlayers);
-        players.add(me);
+    public Player getBaba() {
+        if (null != me && me.isBaba()) { return me; }
 
-        // find baba
+        for (Player p : otherPlayers) {
+            if (p.isBaba()) { return p; }
+        }
+
+        throw new IllegalStateException("baba not found");
+    }
+
+    public boolean checkTouchOfBaba() {
+        List<Player> all = allPlayers();
+
+        // find baba and remove her from list
         Player baba = null;
-        for (Player p : players) {
+        for (Player p : all) {
             if (p.isBaba()) {
                 baba = p;
-                players.remove(p);
+                all.remove(p);
                 break;
             }
         }
         if (null == baba) {
-            throw new IllegalStateException("nobady is baba");
+            throw new IllegalStateException("nobody is baba");
         }
 
         // test contact
-        for (Player p : players) {
+        for (Player p : all) {
             if ((baba.getCoordinates().x + baba.getRadius() > p.getCoordinates().x - p.getRadius()
                         && baba.getCoordinates().x + baba.getRadius() < p.getCoordinates().x + p.getRadius())
                     || (baba.getCoordinates().x - baba.getRadius() > p.getCoordinates().x - p.getRadius()
@@ -283,6 +289,31 @@ public class Game implements Drawable {
     }
 
     /**
+     * Starts a new game.
+     */
+    public void start(String babaName) {
+        if (null == babaName || 0 == babaName.trim().length()) {
+            throw new IllegalArgumentException("baba name cannot be empty");
+        }
+
+        List<Player> all = allPlayers();
+        // set Baba according to given name
+        // and
+        // set coordinates (left-top for baba, right-bottom for others)
+        for (Player p : all) {
+            p.setBaba(babaName.equals(p.getName()));
+
+            if (p.isBaba()) {
+                p.getCoordinates().x = 0 + p.getRadius();
+                p.getCoordinates().y = 0 + p.getRadius();
+            } else {
+                p.getCoordinates().x = FIELD_SIZE_BASE - p.getRadius();
+                p.getCoordinates().y = FIELD_SIZE_BASE - p.getRadius();
+            }
+        }
+    }
+
+    /**
      * Reset connections when the game should start again
      */
     public void reset() {
@@ -296,13 +327,26 @@ public class Game implements Drawable {
         otherPlayers.clear();
     }
 
+    // ----------------------------------------------------------- Helper Stuff
+
     /**
-     * Change size of dimension from the normalized on (1000 x 1000) to the device screen size
+     * Creates list of all players (including 'me').
      *
-     * @param size Normalized dimension (FIELD_SIZE_BASE)
-     * @return Size of move which will be rendered on this device
+     * @return all players
      */
-    protected int adaptSize(int size) {
+    public List<Player> allPlayers() {
+        List<Player> players = new ArrayList<Player>(otherPlayers);
+        players.add(me);
+        return players;
+    }
+
+        /**
+         * Change size of dimension from the normalized on (1000 x 1000) to the device screen size
+         *
+         * @param size Normalized dimension (FIELD_SIZE_BASE)
+         * @return Size of move which will be rendered on this device
+         */
+    private int adaptSize(int size) {
         // the bigger is screen size in pixels, the bigger must be size of the move
         return (int)(size * sizeMultiplier);
     }
@@ -358,10 +402,12 @@ public class Game implements Drawable {
 
         // draw player
         paint.setColor(player.getColor());
-        canvas.drawCircle(
-                BORDER_WIDTH + adaptedX,
-                top + BORDER_WIDTH + adaptedY,
-                adaptedRadius, paint);
+        canvas.drawRect(
+                BORDER_WIDTH + adaptedX - adaptedRadius,
+                top + BORDER_WIDTH + adaptedY - adaptedRadius,
+                BORDER_WIDTH + adaptedX + adaptedRadius,
+                top + BORDER_WIDTH + adaptedY + adaptedRadius,
+                paint);
 
         // symbol on 'player'
         int fontSize = player.getRadius() - 10;

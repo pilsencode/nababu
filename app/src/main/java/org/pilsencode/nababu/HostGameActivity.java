@@ -99,7 +99,10 @@ public class HostGameActivity extends AbstractBTActivity implements Game.GameEve
         acceptThread = new AcceptThread();
         acceptThread.start();
 
-        Game.getInstance().setMe(new Player(getUsername()));
+        Player me = new Player(getUsername());
+        Game.getInstance().setMe(me);
+        // server is always the Baba
+        me.setBaba(true);
     }
 
     @Override
@@ -111,11 +114,14 @@ public class HostGameActivity extends AbstractBTActivity implements Game.GameEve
      * Called when the user clicks the 'Start' button. (on the server side)
      */
     public void startGame(View view) {
+        String babaName = Game.getInstance().getMe().getName();
+
         Intent intent = new Intent(this, PlayingFieldActivity.class);
+        intent.putExtra(PlayingFieldActivity.BABANAME, babaName);
         startActivity(intent);
 
         // inform all clients that the game starts
-        Game.getInstance().sendToOtherPlayers(new Game.GameEvent(ActionEnum.START_GAME, "DELETE_ME"));
+        Game.getInstance().sendToOtherPlayers(new Game.GameEvent(ActionEnum.START_GAME, babaName));
     }
 
     // ------------------------------------------- Game.GameEventObserver Stuff

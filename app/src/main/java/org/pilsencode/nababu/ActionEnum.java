@@ -24,7 +24,7 @@ public enum ActionEnum {
     MOVE,
 
     // info that game starts - all clients should show playing field
-    // params: -no params-
+    // params: username of Baba
     // direction: server -> client
     START_GAME,
 

@@ -202,11 +202,14 @@ public class JoinGameActivity extends AbstractBTActivity implements Game.GameEve
                         game.addPlayerSkipDuplicity(new Player(name));
                     }
 
-    showToast("Player joined: " + name);
+                    showToast("Player joined: " + name);
                 }
                 break;
             case START_GAME:
+                String babaName = event.params[0];
+
                 Intent intent = new Intent(this, PlayingFieldActivity.class);
+                intent.putExtra(PlayingFieldActivity.BABANAME, babaName);
                 startActivity(intent);
                 break;
         }

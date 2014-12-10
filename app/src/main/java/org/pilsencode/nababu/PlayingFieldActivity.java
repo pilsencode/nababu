@@ -22,6 +22,11 @@ import android.widget.Toast;
 public class PlayingFieldActivity extends Activity implements SensorEventListener, Game.GameEventObserver {
 
     /**
+     * Key for passing baba name to this activity via Intent
+     */
+    public final static String BABANAME = "org.pilsencode.nababu.BABANAME";
+
+    /**
      * Sensor refresh limit
      */
     private static final long SENSOR_REFRESH_LIMIT = 40; // [ms]
@@ -94,6 +99,11 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
         super.onStart();
         // register itself as game observer
         Game.getInstance().registerEventObserver(this);
+        // start the game
+        Bundle extras = getIntent().getExtras();
+        String babaName = extras.getString(PlayingFieldActivity.BABANAME);
+
+        Game.getInstance().start(babaName);
     }
 
     @Override
