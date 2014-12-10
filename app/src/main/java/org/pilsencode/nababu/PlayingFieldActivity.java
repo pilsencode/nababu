@@ -162,12 +162,15 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
                     player.getCoordinates().y = positionY;
                 }
 
-                if (Game.getInstance().checkTouchOfBaba()) {
-                    Toast.makeText(this, "BABA!!!", Toast.LENGTH_SHORT).show();
-                }
-
                 view.invalidate();
                 break;
+
+            case BABA:
+                String catched = event.params[0];
+                Toast.makeText(this, "BABA! The looser is: " + catched, Toast.LENGTH_SHORT).show();
+                Game.getInstance().start(catched);
+                break;
+
             case END_GAME:
                 Toast.makeText(this, "Game finished", Toast.LENGTH_LONG).show();
                 stopGameOnClient(); // go back to Host/JoinGame -> onStart -> Game#reset()

@@ -184,7 +184,13 @@ public class Game implements Drawable {
         throw new IllegalStateException("baba not found");
     }
 
-    public boolean checkTouchOfBaba() {
+
+    /**
+     * Checks if a player is catched by baba and return him if yes.
+     *
+     * @return catched player or <i>null</i> if nobody catched
+     */
+    public Player findCatchedPlayer() {
         List<Player> all = allPlayers();
 
         // find baba and remove her from list
@@ -196,20 +202,27 @@ public class Game implements Drawable {
                 break;
             }
         }
-        if (null == baba) {
-            throw new IllegalStateException("nobody is baba");
-        }
+        if (null == baba) { throw new IllegalStateException("nobody is baba"); }
+        int babaAdaptedRadius = adaptSize(baba.getRadius());
 
         // test contact
         for (Player p : all) {
-            if ((baba.getCoordinates().x + baba.getRadius() > p.getCoordinates().x - p.getRadius()
+            int adaptedRadius = adaptSize(p.getRadius());
+            if (
+                    ((baba.getCoordinates().x + baba.getRadius() > p.getCoordinates().x - p.getRadius()
                         && baba.getCoordinates().x + baba.getRadius() < p.getCoordinates().x + p.getRadius())
                     || (baba.getCoordinates().x - baba.getRadius() > p.getCoordinates().x - p.getRadius()
-                        && baba.getCoordinates().x - baba.getRadius() < p.getCoordinates().x + p.getRadius())) {
-                return true;
+                        && baba.getCoordinates().x - baba.getRadius() < p.getCoordinates().x + p.getRadius()))
+                &&
+                    ((baba.getCoordinates().y + baba.getRadius() > p.getCoordinates().y - p.getRadius()
+                            && baba.getCoordinates().y + baba.getRadius() < p.getCoordinates().y + p.getRadius())
+                            || (baba.getCoordinates().y - baba.getRadius() > p.getCoordinates().y - p.getRadius()
+                            && baba.getCoordinates().y - baba.getRadius() < p.getCoordinates().y + p.getRadius()))
+               ) {
+                return p;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -281,11 +294,25 @@ public class Game implements Drawable {
             coordinates.y = FIELD_SIZE_BASE - me.getRadius();
         }
 
+        Player catched = null;
+
+        // server checks if somebody is catched
+        if (Game.getInstance().isServer()) {
+            catched = Game.getInstance().findCatchedPlayer();
+        }
+
+        GameEvent event;
+        if (null == catched) {
+            event = new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(coordinates.x), String.valueOf(coordinates.y));
+        } else {
+            event = new GameEvent(ActionEnum.BABA, catched.getName());
+        }
+
         // send this action to server/clients
-        Game.getInstance().sendToOthers(new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(coordinates.x), String.valueOf(coordinates.y)));
+        Game.getInstance().sendToOthers(event);
 
         // trigger game event that I moved
-        triggerEvent(new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(coordinates.x), String.valueOf(coordinates.y)));
+        triggerEvent(event);
     }
 
     /**

@@ -33,6 +33,11 @@ public enum ActionEnum {
     // direction: server -> client
     END_GAME,
 
+    // a player was catched
+    // params: username of catched player
+    // direction: server -> client
+    BABA,
+
     // info to players that some player disconnected - all players should remove him from the
     // list of players. When player knows he will end, he should sent QUIT command to the server.
     // server sends this info to other connected clients
