@@ -28,6 +28,7 @@ public class Game implements Drawable {
 
     // color schema (see http://paletton.com/)
     public static final int SCREEN_BG_COLOR = Color.rgb(170, 121, 57);
+    public static final int TEXT_COLOR = Color.rgb(255, 255, 255);
     public static final int FIELD_BG_COLOR = Color.rgb(212, 167, 106);
     public static final int FIELD_BORDER_COLOR = Color.rgb(85, 49, 0);
 
@@ -400,6 +401,19 @@ public class Game implements Drawable {
         canvas.drawRect(
                 BORDER_WIDTH, top + BORDER_WIDTH,
                 rectSize - BORDER_WIDTH, top + rectSize - BORDER_WIDTH, paint);
+
+        // show how many times current player was cought by baba
+        int fontSize = 50;
+        paint.setColor(TEXT_COLOR);
+        paint.setTypeface(Typeface.DEFAULT);
+        paint.setTextSize(fontSize);
+        canvas.drawText(
+            "# " + (String.valueOf(me.getCoughtCounter())) + " #",
+            140,
+            100,
+            paint
+        );
+
 
         // draw 'app otherPlayers'
         drawAllPlayers(canvas, top);

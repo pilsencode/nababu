@@ -25,6 +25,11 @@ public class Player {
 
     private boolean baba = false;
 
+    /**
+     * Counter of how many times this player become "baba"
+     */
+    private int coughtCounter = 0;
+
     private Communicator communicator;
 
     public Player() {
@@ -80,6 +85,10 @@ public class Player {
 
     public String getSymbol() {
         return name.substring(0, 1).toUpperCase();
+    }
+
+    public int getCoughtCounter() {
+        return this.coughtCounter;
     }
 
     /**
