@@ -33,8 +33,8 @@ public enum ActionEnum {
     // direction: server -> client
     END_GAME,
 
-    // a player was catched
-    // params: username of catched player
+    // a player was caught
+    // params: username of caught player
     // direction: server -> client
     BABA,
 

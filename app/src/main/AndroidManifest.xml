@@ -11,7 +11,7 @@
         android:theme="@style/AppTheme" >
 
         <activity android:name="org.pilsencode.nababu.EntryPointActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name" android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -20,12 +20,14 @@
         <activity
             android:name="org.pilsencode.nababu.HostGameActivity"
             android:configChanges="keyboardHidden"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="org.pilsencode.nababu.JoinGameActivity"
             android:configChanges="keyboardHidden"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="org.pilsencode.nababu.PlayingFieldActivity"

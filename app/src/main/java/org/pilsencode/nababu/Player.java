@@ -28,7 +28,7 @@ public class Player {
     /**
      * Counter of how many times this player become "baba"
      */
-    private int coughtCounter = 0;
+    private int caughtCounter = 0;
 
     private Communicator communicator;
 
@@ -81,18 +81,18 @@ public class Player {
     }
     public void setBaba(boolean baba) {
         this.baba = baba;
+    }
 
-        if (true == baba) {
-            this.coughtCounter++;
-        }
+    public void increaseCaught() {
+        this.caughtCounter++;
     }
 
     public String getSymbol() {
         return name.substring(0, 1).toUpperCase();
     }
 
-    public int getCoughtCounter() {
-        return this.coughtCounter;
+    public int getCaughtCounter() {
+        return this.caughtCounter;
     }
 
     /**

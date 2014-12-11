@@ -187,11 +187,11 @@ public class Game implements Drawable {
 
 
     /**
-     * Checks if a player is catched by baba and return him if yes.
+     * Checks if a player is caught by baba and return him if yes.
      *
-     * @return catched player or <i>null</i> if nobody catched
+     * @return caught player or <i>null</i> if nobody was caught
      */
-    public Player findCatchedPlayer() {
+    public Player findCaughtPlayer() {
         List<Player> all = allPlayers();
 
         // find baba and remove her from list
@@ -295,24 +295,21 @@ public class Game implements Drawable {
             coordinates.y = FIELD_SIZE_BASE - me.getRadius();
         }
 
-        Player catched = null;
+        Player caught = null;
 
-        // server checks if somebody is catched
+        // server checks if somebody is caught
         if (Game.getInstance().isServer()) {
-            catched = Game.getInstance().findCatchedPlayer();
+            caught = Game.getInstance().findCaughtPlayer();
         }
 
         GameEvent event;
-        if (null == catched) {
+        if (null == caught) {
             event = new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(coordinates.x), String.valueOf(coordinates.y));
         } else {
-            event = new GameEvent(ActionEnum.BABA, catched.getName());
+            event = new GameEvent(ActionEnum.BABA, caught.getName());
         }
 
-        // send this action to server/clients
-        Game.getInstance().sendToOthers(event);
-
-        // trigger game event that I moved
+        // trigger game event that I moved / somebody was caught
         triggerEvent(event);
     }
 
@@ -402,13 +399,13 @@ public class Game implements Drawable {
                 BORDER_WIDTH, top + BORDER_WIDTH,
                 rectSize - BORDER_WIDTH, top + rectSize - BORDER_WIDTH, paint);
 
-        // show how many times current player was cought by baba
+        // show how many times current player was caught by baba
         int fontSize = 50;
         paint.setColor(TEXT_COLOR);
         paint.setTypeface(Typeface.DEFAULT);
         paint.setTextSize(fontSize);
         canvas.drawText(
-            "# " + (String.valueOf(me.getCoughtCounter())) + " #",
+            "# " + (String.valueOf(me.getCaughtCounter())) + " #",
             140,
             100,
             paint

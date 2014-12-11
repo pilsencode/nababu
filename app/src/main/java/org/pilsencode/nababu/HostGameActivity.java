@@ -142,9 +142,12 @@ public class HostGameActivity extends AbstractBTActivity implements Game.GameEve
                         // add new player into displayed list of players
                         playersListAdapter.add(name);
 
-                        // send all currently joined players name of the joined player
-                        Game.getInstance().sendToOtherPlayers(new Game.GameEvent(event.player, ActionEnum.JOINED, name));
-                        // send the name of server player to all players
+                        // send all currently joined players names to all players (players must ignore duplicities)
+                        for (Player p : Game.getInstance().getOtherPlayers()) {
+                            Game.getInstance().sendToOtherPlayers(new Game.GameEvent(event.player, ActionEnum.JOINED, p.getName()));
+                        }
+
+                        // send the name of server player to currently joined player
                         Game.getInstance().sendToOtherPlayers(new Game.GameEvent(ActionEnum.JOINED, Game.getInstance().getMe().getName()));
 
                         // 1 - I guess it does not matter what is send.. just send any integer

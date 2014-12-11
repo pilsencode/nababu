@@ -162,13 +162,18 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
                     player.getCoordinates().y = positionY;
                 }
 
+                // TODO this should be somewhere else?
+                // send this action to server/clients
+                Game.getInstance().sendToOthers(event);
+
                 view.invalidate();
                 break;
 
             case BABA:
-                String catched = event.params[0];
-                Toast.makeText(this, "BABA! The looser is: " + catched, Toast.LENGTH_SHORT).show();
-                Game.getInstance().start(catched);
+                String caught = event.params[0];
+                Toast.makeText(this, "BABA! The looser is: " + caught, Toast.LENGTH_SHORT).show();
+                Game.getInstance().getPlayer(caught).increaseCaught();
+                Game.getInstance().start(caught);
                 break;
 
             case END_GAME:
