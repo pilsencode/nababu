@@ -81,6 +81,10 @@ public class Player {
     }
     public void setBaba(boolean baba) {
         this.baba = baba;
+
+        if (true == baba) {
+            this.coughtCounter++;
+        }
     }
 
     public String getSymbol() {
