@@ -144,36 +144,15 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
     public void onGameEvent(Game.GameEvent event) {
         switch (event.action) {
             case MOVE:
-                // decode params of move action
-                String name = event.params[0];
 
-                // if other player moved, change his position
-                if (!name.equals(Game.getInstance().getMe().getName())) {
-                    // find object of player who moved
-                    // On the server this player is also in event.player, but on the client side not...
-                    int positionX = Integer.valueOf(event.params[1]);
-                    int positionY = Integer.valueOf(event.params[2]);
-
-                    Player player = Game.getInstance().getPlayer(name);
-
-                    // move by the player (update his coordinates)
-                    // TODO this should be somewhere? - same code should move by me and others
-                    player.getCoordinates().x = positionX;
-                    player.getCoordinates().y = positionY;
-                }
-
-                // TODO this should be somewhere else?
-                // send this action to server/clients
-                Game.getInstance().sendToOthers(event);
-
+                // when player moved, invalidate view - render new position
                 view.invalidate();
                 break;
 
             case BABA:
                 String caught = event.params[0];
                 Toast.makeText(this, "BABA! The looser is: " + caught, Toast.LENGTH_SHORT).show();
-                Game.getInstance().getPlayer(caught).increaseCaught();
-                Game.getInstance().start(caught);
+
                 break;
 
             case END_GAME:

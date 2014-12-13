@@ -276,7 +276,6 @@ public class Game implements Drawable {
      * @param angleY Tilt angle of the device (-1 - +1) on Y axis
      */
     public void moveMe(double angleX, double angleY) {
-        // TODO this should be somewhere? - same code should move by me and others
         Point coordinates = me.getCoordinates();
         coordinates.x += me.getSpeed()*angleX;
         coordinates.y += me.getSpeed()*angleY;
@@ -295,21 +294,10 @@ public class Game implements Drawable {
             coordinates.y = FIELD_SIZE_BASE - me.getRadius();
         }
 
-        Player caught = null;
-
-        // server checks if somebody is caught
-        if (Game.getInstance().isServer()) {
-            caught = Game.getInstance().findCaughtPlayer();
-        }
-
         GameEvent event;
-        if (null == caught) {
-            event = new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(coordinates.x), String.valueOf(coordinates.y));
-        } else {
-            event = new GameEvent(ActionEnum.BABA, caught.getName());
-        }
+        event = new GameEvent(ActionEnum.MOVE, me.getName(), String.valueOf(coordinates.x), String.valueOf(coordinates.y));
 
-        // trigger game event that I moved / somebody was caught
+        // trigger game event that I moved
         triggerEvent(event);
     }
 
@@ -355,6 +343,64 @@ public class Game implements Drawable {
     // ----------------------------------------------------------- Helper Stuff
 
     /**
+     * Unify handling of own events and events from other players
+     *
+     * @param event
+     */
+    public void onGameEvent(Game.GameEvent event) {
+        switch (event.action) {
+            case MOVE:
+                // decode params of move action
+                String name = event.params[0];
+
+                // if other player moved, change his position (I'm moving in method moveMe())
+                if (!name.equals(Game.getInstance().getMe().getName())) {
+                    // find object of player who moved
+                    // On the server this player is also in event.player, but on the client side not...
+                    int positionX = Integer.valueOf(event.params[1]);
+                    int positionY = Integer.valueOf(event.params[2]);
+
+                    Player player = Game.getInstance().getPlayer(name);
+
+                    // move by the player (update his coordinates)
+                    player.getCoordinates().x = positionX;
+                    player.getCoordinates().y = positionY;
+                }
+
+                // send MOVE action to server/clients
+                Game.getInstance().sendToOthers(event);
+
+                /* server checks if somebody was caught */
+                Player caughtPlayer = null;
+                if (Game.getInstance().isServer()) {
+                    caughtPlayer = Game.getInstance().findCaughtPlayer();
+
+                    if (null != caughtPlayer) {
+                        event = new GameEvent(ActionEnum.BABA, caughtPlayer.getName());
+                        // trigger game event somebody was caught
+                        triggerEvent(event);
+                    }
+                }
+
+                break;
+
+            case BABA:
+                // inform clients that baba changes
+                if (Game.getInstance().isServer()) {
+                    Game.getInstance().sendToOtherPlayers(event);
+                }
+
+                // update caught counter about
+                String caught = event.params[0];
+                Game.getInstance().getPlayer(caught).increaseCaught();
+                Game.getInstance().start(caught);
+                break;
+        }
+    }
+
+    // ----------------------------------------------------------- Helper Stuff
+
+    /**
      * Creates list of all players (including 'me').
      *
      * @return all players
@@ -365,12 +411,12 @@ public class Game implements Drawable {
         return players;
     }
 
-        /**
-         * Change size of dimension from the normalized on (1000 x 1000) to the device screen size
-         *
-         * @param size Normalized dimension (FIELD_SIZE_BASE)
-         * @return Size of move which will be rendered on this device
-         */
+    /**
+     * Change size of dimension from the normalized on (1000 x 1000) to the device screen size
+     *
+     * @param size Normalized dimension (FIELD_SIZE_BASE)
+     * @return Size of move which will be rendered on this device
+     */
     private int adaptSize(int size) {
         // the bigger is screen size in pixels, the bigger must be size of the move
         return (int)(size * sizeMultiplier);
@@ -601,6 +647,10 @@ public class Game implements Drawable {
     }
 
     public void triggerEvent(GameEvent event) {
+        // At first inform Game singleton that event occurred
+        Game.getInstance().onGameEvent(event);
+
+        // then inform other observers
         for (GameEventObserver observer : observers) {
             observer.onGameEvent(event);
         }
