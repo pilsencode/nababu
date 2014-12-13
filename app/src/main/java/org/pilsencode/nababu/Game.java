@@ -446,14 +446,13 @@ public class Game implements Drawable {
                 rectSize - BORDER_WIDTH, top + rectSize - BORDER_WIDTH, paint);
 
         // show how many times current player was caught by baba
-        int fontSize = 50;
         paint.setColor(TEXT_COLOR);
-        paint.setTypeface(Typeface.DEFAULT);
-        paint.setTextSize(fontSize);
+//        paint.setTypeface(Typeface.DEFAULT);
+        paint.setTextSize(60);
         canvas.drawText(
-            "# " + (String.valueOf(me.getCaughtCounter())) + " #",
+            "" + (String.valueOf(me.getCaughtCounter())) + "",
             140,
-            100,
+            120,
             paint
         );
 

@@ -25,7 +25,7 @@ public class PlayingFieldView extends View {
         Game game = Game.getInstance();
 
         if (!intialized) {
-            // set size of playing filed
+            // set size of playing field
             game.setBoardSize(getWidth(), getHeight());
 
             // draw background
