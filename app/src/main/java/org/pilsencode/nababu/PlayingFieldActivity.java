@@ -120,9 +120,14 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        // TODO [veny] send STOP to all clients if I am server
-                        // is this ok? todo solved?
-                        Game.getInstance().sendToOtherPlayers(new Game.GameEvent(ActionEnum.END_GAME));
+                        // send info that I want to quit
+                        //Game.getInstance().getHandler().obtainMessage(1, new Game.GameEvent(ActionEnum.QUIT, Game.getInstance().getMe().getName())).sendToTarget();
+                        if (Game.getInstance().isServer()) {
+                            Game.getInstance().sendToOtherPlayers(new Game.GameEvent(ActionEnum.END_GAME));
+                        } else {
+                            // TODO send info - now problems with sockets
+                            //Game.getInstance().sendToServer(new Game.GameEvent(ActionEnum.QUIT, Game.getInstance().getMe().getName()));
+                        }
 
                         PlayingFieldActivity.this.finish();
                     }
@@ -154,7 +159,11 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
                 Toast.makeText(this, "BABA! The looser is: " + caught, Toast.LENGTH_SHORT).show();
 
                 break;
+            case QUIT:
+                //String quitName = event.params[0];
+                //Toast.makeText(this, "Player " + quitName + " left the game", Toast.LENGTH_SHORT).show();
 
+                break;
             case END_GAME:
                 Toast.makeText(this, "Game finished", Toast.LENGTH_LONG).show();
                 stopGameOnClient(); // go back to Host/JoinGame -> onStart -> Game#reset()

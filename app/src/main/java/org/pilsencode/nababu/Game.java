@@ -114,7 +114,7 @@ public class Game implements Drawable {
     /**
      * Add player to the list of players
      *
-     * @param player
+     * @param player Player who will be added
      */
     public void addPlayer(Player player) {
         otherPlayers.add(player);
@@ -124,12 +124,26 @@ public class Game implements Drawable {
      * Add player to the list of players
      * When player already exist in the list of players, he will not be added
      *
-     * @param player
+     * @param player Player who will be added
      */
     public void addPlayerSkipDuplicity(Player player) {
         if (!existPlayer(player)) {
             otherPlayers.add(player);
         }
+    }
+
+    /**
+     * Removes player from the list of players
+     * On the server side also quits communication
+     *
+     * @param player Player who will be removed from the list of players
+     */
+    public void removePlayer(Player player) {
+        //if (isServer()) {
+            //player.getCommunicator().finish();
+        //}
+
+        otherPlayers.remove(player);
     }
 
     public List<Player> getOtherPlayers() {
@@ -340,18 +354,20 @@ public class Game implements Drawable {
         otherPlayers.clear();
     }
 
-    // ----------------------------------------------------------- Helper Stuff
+    // ----------------------------------------------------------- Game events
 
     /**
      * Unify handling of own events and events from other players
      *
-     * @param event
+     * @param event Event which occurred in the Game
      */
     public void onGameEvent(Game.GameEvent event) {
+        String name;
+
         switch (event.action) {
             case MOVE:
                 // decode params of move action
-                String name = event.params[0];
+                name = event.params[0];
 
                 // if other player moved, change his position (I'm moving in method moveMe())
                 if (!name.equals(Game.getInstance().getMe().getName())) {
@@ -371,9 +387,8 @@ public class Game implements Drawable {
                 Game.getInstance().sendToOthers(event);
 
                 /* server checks if somebody was caught */
-                Player caughtPlayer = null;
                 if (Game.getInstance().isServer()) {
-                    caughtPlayer = Game.getInstance().findCaughtPlayer();
+                    Player caughtPlayer = Game.getInstance().findCaughtPlayer();
 
                     if (null != caughtPlayer) {
                         event = new GameEvent(ActionEnum.BABA, caughtPlayer.getName());
@@ -394,6 +409,19 @@ public class Game implements Drawable {
                 String caught = event.params[0];
                 Game.getInstance().getPlayer(caught).increaseCaught();
                 Game.getInstance().start(caught);
+                break;
+            case QUIT:
+                name = event.params[0]; // name of player who quits
+
+                // when somebody else quits
+                if (Game.getInstance().isServer()) {
+                    // when I'm server, resend this info to clients
+                    Game.getInstance().sendToOtherPlayersExceptSource(event);
+                }
+
+                // remove that player from the list of players
+                removePlayer(getPlayer(name));
+
                 break;
         }
     }
@@ -518,7 +546,7 @@ public class Game implements Drawable {
      *
      * Maybe args of this method should be "Player sourcePlayer, ActionEnum action, Object... params" ?
      *
-     * @param event
+     * @param event Event which will be sent
      */
     public void sendToOthers(GameEvent event) {
         if (Game.getInstance().isServer()) {
@@ -627,7 +655,7 @@ public class Game implements Drawable {
         /**
          * Method which will be called on observer when game event occurs
          *
-         * @param event
+         * @param event Event which occurred in the Game
          */
         void onGameEvent(GameEvent event);
     }
