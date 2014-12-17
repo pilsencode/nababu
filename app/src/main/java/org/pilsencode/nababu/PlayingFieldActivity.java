@@ -12,6 +12,8 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.WindowManager;
 import android.widget.Toast;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 
 /**
@@ -31,16 +33,33 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
      */
     private static final long SENSOR_REFRESH_LIMIT = 40; // [ms]
 
-    private PlayingFieldView view;
+    RelativeLayout layout;
+    private PlayingFieldView boardView;
+    private TextView caughtCounterView;
     private SensorManager sensorManager;
     private Sensor sensorAccelerometer;
     private long lastSensorEvent = System.currentTimeMillis();
 
+    private final String babatextBase = "\n\n your baba quantity: ";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        view = new PlayingFieldView(this);
-        setContentView(view);
+
+        boardView = new PlayingFieldView(this);
+        caughtCounterView = new TextView(this);
+        caughtCounterView.append(babatextBase + "0");
+        caughtCounterView.setTextSize(24);
+
+        // Create a Layout in which to add the Views
+
+        layout = new RelativeLayout(this);
+
+        layout.addView(caughtCounterView);
+        layout.addView(boardView);
+
+        setContentView(layout);
+
 
         // enforce the Portrait orientation
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -151,12 +170,15 @@ public class PlayingFieldActivity extends Activity implements SensorEventListene
             case MOVE:
 
                 // when player moved, invalidate view - render new position
-                view.invalidate();
+                boardView.invalidate();
                 break;
 
             case BABA:
                 String caught = event.params[0];
                 Toast.makeText(this, "BABA! The looser is: " + caught, Toast.LENGTH_SHORT).show();
+
+                // refresh baba counter - show your baba-size ;)
+                caughtCounterView.setText(this.babatextBase + String.valueOf(Game.getInstance().getMe().getCaughtCounter()));
 
                 break;
             case QUIT:
