@@ -222,8 +222,12 @@ public abstract class AbstractBTActivity extends Activity {
         @Override
         public void finish() {
             try {
-                if (null != reader) { reader.close(); }
-                if (null != writer) { writer.close(); }
+                if (null != writer) {
+                    writer.close();
+                }
+                if (null != reader) {
+                    reader.close();
+                }
             } catch (IOException e) {
                 Log.e("nababu", "failed to close reader/writer", e);
             }
