@@ -381,10 +381,17 @@ public class Game implements Drawable {
                     // move by the player (update his coordinates)
                     player.getCoordinates().x = positionX;
                     player.getCoordinates().y = positionY;
+                } else {
+                    // I moved - send this info to server
+                    if (!isServer()) {
+                        sendToServer(event);
+                    }
                 }
 
-                // send MOVE action to server/clients
-                Game.getInstance().sendToOthers(event);
+                // send MOVE action to clients when I'm server
+                if (Game.getInstance().isServer()) {
+                    Game.getInstance().sendToOthers(event);
+                }
 
                 /* server checks if somebody was caught */
                 if (Game.getInstance().isServer()) {
